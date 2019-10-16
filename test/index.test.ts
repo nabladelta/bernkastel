@@ -22,12 +22,10 @@ describe('IPFS & OrbitDB', function() {
         }
       }
       const node = await initIPFS(ipfsOptions)
-      const peers = await node.swarm.peers()
-      expect(peers.length).gt(0)
       const orbit = await OrbitDB.createInstance(node, {directory: `./orbitdb/${now}/orbitdb`})
-      const db = (await orbit.create(now.toString(), 'feed')) as FeedStore<{payload:{value:object}}>
+      const db = (await orbit.create(now.toString(), 'feed')) as FeedStore<string>
       const h = await db.add(now.toString())
-      const v = await db.get(h)
+      const v = db.get(h)
       expect(v.payload.value).eq(now.toString())
     })
   })
