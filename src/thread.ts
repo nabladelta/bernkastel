@@ -1,34 +1,39 @@
 import IPFS from "ipfs";
 import OrbitDB from "orbit-db"
-import { FeedStore } from "orbit-db-feedstore";
-import { Identity } from "orbit-db-identity-provider";
-interface LogEntry {
-        hash: string,
-        id: string,
-        payload: { op: string, key?: string, value: object},
-        next: object[],
-        v: 1,
-        clock: object,
-        key: string,
-        identity: Identity,
-        sig: string
-}
+import { FeedStore } from "orbit-db-feedstore"
 export class Thread {
-    ipfs: ipfs
+    ipfs: IPFS
     orbit: OrbitDB
-    address: string
-    db: FeedStore<LogEntry>
-    ready: Promise<OrbitDB>
-    constructor(ipfs: ipfs, orbit: OrbitDB, address?: string){
+    db: FeedStore<string>
+    ready: Promise<void>
+    constructor(ipfs: IPFS, orbit: OrbitDB, address?: string){
         this.ipfs = ipfs
         this.orbit = orbit
-        this.ready = new Promise((resolve, reject) => {
-            if (address == undefined){
-                const db = this.orbit.create(Date.now().toString(), 'feed')
-            } else {
-                this.address = address
-                this.orbit.open(this.address)
+        this.ready = new Promise(async (resolve, reject) => {
+            try {
+                if (address == undefined){
+                    this.db = await this.orbit.create(Date.now().toString(), 'feed', {}) as FeedStore<string>
+                } else {
+                    this.db = await this.orbit.open(address) as FeedStore<string>
+                }
+            } catch {
+                reject()
             }
+            resolve()
         })
+    }
+    async post(post: Post){
+        const hash = await this.db.add(post)
+        return hash
+    }
+    async read(options?: {
+        gt?: string;
+        gte?: string;
+        lt?: string;
+        lte?: string;
+        limit?: number;
+        reverse?: boolean;
+    }){
+        const posts = this.db.iterator(options).collect().map((entry) => entry.payload.value)
     }
 }
