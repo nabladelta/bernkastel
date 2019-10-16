@@ -1,7 +1,7 @@
 {
-  "name": "cw",
+  "name": "bernkastel",
   "version": "0.1.0",
-  "description": "The Future of Communication",
+  "description": "A library implementing a decentralized forum system on IPFS and OrbitDB",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -10,7 +10,7 @@
     "test": "mocha --timeout 15000 -r ts-node/register test/**/*.test.ts",
     "coverage": "nyc -r lcov -e .ts -x \"*.test.ts\" npm run test"
   },
-  "author": "Me",
+  "author": "reasv",
   "license": "GPL-3.0-or-later",
   "devDependencies": {
     "@types/chai": "^4.2.3",
