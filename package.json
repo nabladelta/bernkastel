@@ -25,6 +25,7 @@
   "dependencies": {
     "@types/events": "^3.0.0",
     "@types/node": "^12.7.12",
+    "@types/orbit-db": "git+https://github.com/orbitdb/orbit-db-types.git",
     "ipfs": "github:ipfs/js-ipfs#master",
     "orbit-db": "github:orbitdb/orbit-db#master"
   }

@@ -3,12 +3,12 @@
       "module": "commonjs",
       "esModuleInterop": true,
       "target": "es6",
-      //"declaration": true,
+      "declaration": true,
       "moduleResolution": "node",
       "sourceMap": true,
-      "allowJs": true,
+      //"allowJs": true,
       "outDir": "dist"
     },
-    "include": ["src/**/*", "test/**/*"],
+    "include": ["src/**/*", "test/**/*", "js/ipfs.js"],
     "lib": ["es2015"]
   }
