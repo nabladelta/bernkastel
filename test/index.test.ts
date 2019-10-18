@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import {initIPFS} from "../src/index"
 import OrbitDB from "orbit-db";
 import { doesNotReject } from 'assert';
-import ThreadStore from '../src/ThreadStore/ThreadStore';
+import ThreadStore from '../src/ThreadStore';
 
 describe('IPFS & OrbitDB', function() {
     it('starts IPFS and OrbitDB', async () => {

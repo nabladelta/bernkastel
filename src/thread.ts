@@ -1,6 +1,6 @@
 import IPFS from "ipfs";
 import OrbitDB from "orbit-db"
-import ThreadStore from './ThreadStore/ThreadStore'
+import ThreadStore from './ThreadStore'
 import {Post} from './Post'
 export class Thread {
     public ipfs: IPFS

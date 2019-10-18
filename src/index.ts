@@ -1,6 +1,6 @@
 import IPFS from "ipfs";
 import OrbitDB from "orbit-db"
-import ThreadStore from './ThreadStore/ThreadStore'
+import ThreadStore from './ThreadStore'
 export const ipfsOptions = {
     repo: `./orbitdb/default/ipfs`,
     relay: { enabled: true, hop: { enabled: true, active: true } },
