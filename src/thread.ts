@@ -1,12 +1,11 @@
 import IPFS from "ipfs";
 import OrbitDB from "orbit-db"
-import { FeedStore } from "orbit-db-feedstore"
-import { Hash } from "crypto"
-
+import ThreadStore from './ThreadStore/ThreadStore'
+import {Post} from './Post'
 export class Thread {
     public ipfs: IPFS
     public orbit: OrbitDB
-    public db: FeedStore<Post>
+    public db: ThreadStore
     public ready: Promise<void>
     constructor(ipfs: IPFS, orbit: OrbitDB, address?: string){
         this.ipfs = ipfs
@@ -14,9 +13,9 @@ export class Thread {
         this.ready = new Promise(async (resolve, reject) => {
             try {
                 if (address == undefined){
-                    this.db = await this.orbit.create(Date.now().toString(), 'feed', {}) as FeedStore<Post>
+                    this.db = await this.orbit.create(Date.now().toString(), 'feed', {}) as ThreadStore
                 } else {
-                    this.db = await this.orbit.open(address) as FeedStore<Post>
+                    this.db = await this.orbit.open(address) as ThreadStore
                 }
                 this.db.events.on('replicated', this.replicated)
             } catch {
