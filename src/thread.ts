@@ -1,21 +1,24 @@
 import IPFS from "ipfs";
 import OrbitDB from "orbit-db"
 import { FeedStore } from "orbit-db-feedstore"
+import { Hash } from "crypto"
+
 export class Thread {
-    ipfs: IPFS
-    orbit: OrbitDB
-    db: FeedStore<string>
-    ready: Promise<void>
+    public ipfs: IPFS
+    public orbit: OrbitDB
+    public db: FeedStore<Post>
+    public ready: Promise<void>
     constructor(ipfs: IPFS, orbit: OrbitDB, address?: string){
         this.ipfs = ipfs
         this.orbit = orbit
         this.ready = new Promise(async (resolve, reject) => {
             try {
                 if (address == undefined){
-                    this.db = await this.orbit.create(Date.now().toString(), 'feed', {}) as FeedStore<string>
+                    this.db = await this.orbit.create(Date.now().toString(), 'feed', {}) as FeedStore<Post>
                 } else {
-                    this.db = await this.orbit.open(address) as FeedStore<string>
+                    this.db = await this.orbit.open(address) as FeedStore<Post>
                 }
+                this.db.events.on('replicated', this.replicated)
             } catch {
                 reject()
             }
@@ -34,6 +37,10 @@ export class Thread {
         limit?: number;
         reverse?: boolean;
     }){
-        const posts = this.db.iterator(options).collect().map((entry) => entry.payload.value)
+        const posts = this.db.iterator(options).collect()
+        return posts
+    }
+    async replicated(_address: string){ // fired whenever we receive new posts from other peers
+        //TODO: find new entries
     }
 }
