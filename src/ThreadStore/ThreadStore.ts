@@ -1,11 +1,9 @@
-import OrbitDB from "orbit-db"
 import { EventStore } from "orbit-db-eventstore"
-import { Store } from "orbit-db-store"
-import IPFS from 'ipfs'
 import {ThreadIndex} from './ThreadIndex'
-export class ThreadStore<T> extends EventStore<T> {
+import { Post } from "../Post"
+class ThreadStore extends EventStore<Post> {
     _type: string
-    constructor (ipfs: IPFS, id: any, dbname: string, options: {[key: string]: object}) {
+    constructor (ipfs: any, id: any, dbname: string, options: {[key: string]: object}) {
       if(!options) options = {}
       if(!options.Index) Object.assign(options, {Index: ThreadIndex})
       super(ipfs, id, dbname, options)
@@ -25,3 +23,4 @@ export class ThreadStore<T> extends EventStore<T> {
       return this._addOperation(operation)
     }
   }
+  export = ThreadStore

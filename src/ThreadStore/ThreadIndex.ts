@@ -1,3 +1,4 @@
+import {Post} from '../Post'
 export class ThreadIndex {
     _index: {[key: string]: LogEntry<Post>}
     constructor() {
