@@ -23,6 +23,6 @@ export async function initIPFS(options: {[key: string]: any}){
     return node
 }
 export async function initOrbit(ipfs: IPFS, options: {[key: string]: any}){
-    const orbit = await OrbitDB.createInstance(ipfs, options)
     OrbitDB.addDatabaseType('thread', ThreadStore)
+    const orbit = await OrbitDB.createInstance(ipfs, options)
 }
