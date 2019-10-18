@@ -2,7 +2,8 @@ import { expect } from 'chai';
 import {initIPFS} from "../src/index"
 import OrbitDB from "orbit-db";
 import { doesNotReject } from 'assert';
-import { FeedStore } from 'orbit-db-feedstore';
+import ThreadStore from '../src/ThreadStore/ThreadStore';
+
 describe('IPFS & OrbitDB', function() {
     it('starts IPFS and OrbitDB', async () => {
       const now = Date.now()
@@ -22,8 +23,9 @@ describe('IPFS & OrbitDB', function() {
         }
       }
       const node = await initIPFS(ipfsOptions)
+      OrbitDB.addDatabaseType('thread', ThreadStore)
       const orbit = await OrbitDB.createInstance(node, {directory: `./orbitdb/${now}/orbitdb`})
-      const db = (await orbit.create(now.toString(), 'feed')) as FeedStore<string>
+      const db = (await orbit.create(now.toString(), 'thread')) as ThreadStore
       const h = await db.add(now.toString())
       const v = db.get(h)
       expect(v.payload.value).eq(now.toString())
