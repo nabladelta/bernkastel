@@ -9,6 +9,6 @@
       //"allowJs": true,
       "outDir": "dist"
     },
-    "include": ["src/**/*", "test/**/*", "js/ipfs.js"],
+    "include": ["src/**/*", "test/**/*"],
     "lib": ["es2015"]
   }
