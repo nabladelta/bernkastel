@@ -13,10 +13,11 @@ class Thread {
         this.ready = new Promise(async (resolve, reject) => {
             try {
                 if (address == undefined){
-                    this.db = await this.orbit.create(Date.now().toString(), 'feed', {}) as ThreadStore
+                    this.db = await this.orbit.create(Date.now().toString(), 'feed', {write: ["*"]}) as ThreadStore
                 } else {
                     this.db = await this.orbit.open(address) as ThreadStore
                 }
+                //this.db.setIdentity()
                 this.db.events.on('replicated', this.replicated)
             } catch {
                 reject()
@@ -27,6 +28,9 @@ class Thread {
     async post(post: Post){
         const hash = await this.db.add(post)
         return hash
+    }
+    async delete(hash: string){
+        return await this.db.del(hash) // returns hash of delete operation
     }
     async read(options?: {
         gt?: string;
@@ -40,7 +44,7 @@ class Thread {
         return posts
     }
     async replicated(_address: string){ // fired whenever we receive new posts from other peers
-        //TODO: find new entries
+        //TODO: find, handle new entries
     }
 }
 export = Thread
