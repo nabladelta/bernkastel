@@ -3,7 +3,7 @@ import {initIPFS} from "../src/index"
 import OrbitDB from "orbit-db";
 import { doesNotReject } from 'assert';
 import ThreadStore from '../src/ThreadStore';
-
+import {Post} from '../src/Post'
 describe('IPFS & OrbitDB', function() {
     it('starts IPFS and OrbitDB', async () => {
       const now = Date.now()
@@ -26,8 +26,11 @@ describe('IPFS & OrbitDB', function() {
       OrbitDB.addDatabaseType('thread', ThreadStore)
       const orbit = await OrbitDB.createInstance(node, {directory: `./orbitdb/${now}/orbitdb`})
       const db = (await orbit.create(now.toString(), 'thread')) as ThreadStore
-      const h = await db.add(now.toString())
+      console.log(db.all)
+      const post = {time: Date.now(), message: "1"} as Post
+      const h = await db.add(post)
+      console.log(db.all)
       const v = db.get(h)
-      expect(v.payload.value).eq(now.toString())
+      expect(v.payload.value).eq(post)
     })
   })
