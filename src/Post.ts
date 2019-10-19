@@ -3,7 +3,8 @@ export interface Post {
     message?: string,
     quote?: string[],
     attachments?: string[],
-    time: Date
+    title?: string,
+    time: number
     deleted?: [string, string][] // signatures
     delete?: string // command to delete a post
 }
