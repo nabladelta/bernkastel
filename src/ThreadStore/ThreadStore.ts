@@ -1,4 +1,4 @@
-import { EventStore } from "orbit-db-eventstore"
+import EventStore from "orbit-db-eventstore"
 import {ThreadIndex} from './ThreadIndex'
 import { Post } from "../Post"
 class ThreadStore extends EventStore<Post> {
@@ -16,14 +16,13 @@ class ThreadStore extends EventStore<Post> {
     remove (hash: string) {
       return this.del(hash)
     }
-  
     del (hash: string) {
       const operation = {
         op: 'DEL',
         key: null,
         value: {time: Date.now(), delete: hash}
       }
-      return this._addOperation(operation)
+      return this._addOperation(operation) as string
     }
   }
   export = ThreadStore

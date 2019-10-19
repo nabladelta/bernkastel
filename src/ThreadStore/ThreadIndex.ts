@@ -6,7 +6,7 @@ export class ThreadIndex {
     }
     
     get() {
-      return Object.keys(this._index).map((f) => this._index[f])
+      return Array.from(this._index.values())
     }
   
     updateIndex(oplog: {values: LogEntry<Post>[]}) {
