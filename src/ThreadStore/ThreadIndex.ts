@@ -14,25 +14,26 @@ export class ThreadIndex {
       oplog.values.reduce((handled: string[], item) => {
         if(!handled.includes(item.hash)) {
           handled.push(item.hash)
-
           const OP = item.payload.op
-          if (OP === 'ADD') { // we want to add a post
-            this._index.set(item.hash, item)
+          if (!(OP === 'ADD' || OP === 'DEL' || OP === 'UNDEL')) return handled // ignore if not a valid operation
+
+          this._index.set(item.hash, item) // add operation to index
+
+          if (OP === 'ADD') return handled // if we're adding a post, we're done
+
+          // we want to delete/undelete a post
+          const deleteHash = item.payload.value.delete
+          if (!this._index.has(deleteHash)) return handled // ensure post to be (un)deleted exists
+
+          const deletedPost = this._index.get(deleteHash)
+          if (deletedPost.payload.value.deletedBy == undefined) deletedPost.payload.value.deletedBy = new Set<string>([]) // add set if undefined
+          if (OP === 'DEL') { // delete post
+            deletedPost.payload.value.deletedBy.add(item.identity.publicKey)
           }
-          if (OP === 'DEL' || OP === 'UNDEL') { // we want to delete/undelete a post
-            const deleteHash = item.payload.value.delete
-            const deletedPost = this._index.get(deleteHash)
-            if (this._index.has(deleteHash)){ // post to be (un)deleted exists
-              if (deletedPost.payload.value.deletedBy == undefined) deletedPost.payload.value.deletedBy = new Set<string>([]) // add set if undefined
-              if (OP === 'DEL'){ // delete post
-                deletedPost.payload.value.deletedBy.add(item.identity.publicKey)
-              }
-              if (OP === 'UNDEL') { // undelete post
-                deletedPost.payload.value.deletedBy.delete(item.identity.publicKey)
-              }
-              this._index.set(deleteHash, deletedPost)
-            }
+          if (OP === 'UNDEL') { // undelete post
+            deletedPost.payload.value.deletedBy.delete(item.identity.publicKey)
           }
+          this._index.set(deleteHash, deletedPost) // update the (un)deleted post in the index
         }
         return handled
       }, [])
