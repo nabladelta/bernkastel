@@ -24,5 +24,13 @@ class ThreadStore extends EventStore<Post> {
       }
       return this._addOperation(operation) as string
     }
+    undel (hash: string) { // cancel a deletion
+      const operation = {
+        op: 'UNDEL',
+        key: null,
+        value: {time: Date.now(), delete: hash}
+      }
+      return this._addOperation(operation) as string
+    }
   }
   export = ThreadStore
