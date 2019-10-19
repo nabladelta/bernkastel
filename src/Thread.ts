@@ -10,7 +10,7 @@ class Thread {
     public orbit: OrbitDB
     public db: ThreadStore
     public ready: Promise<void> // resolves when the thread is ready
-    public moderators: Set<string> // public keys of moderators
+    public moderators: Set<string> // ids of moderators
     constructor(ipfs: IPFS, orbit: OrbitDB, address?: string, options?: IThreadOptions){
         this.ipfs = ipfs
         this.orbit = orbit
@@ -38,12 +38,12 @@ class Thread {
         return this.db.all.map((entry) => {
             if (entry.payload.value.deletedBy == undefined) return entry // no one has deleted this entry
 
-            if (entry.payload.value.deletedBy.has(entry.identity.publicKey)){ // deleted by the original creator
+            if (entry.payload.value.deletedBy.has(entry.identity.id)){ // deleted by the original creator
                 entry.payload.value.hide = true
                 return entry
             }
             
-            const intersect = [...this.moderators].filter(pubkey => entry.payload.value.deletedBy.has(pubkey)) // intersect moderator set and deletedBy
+            const intersect = [...this.moderators].filter(id => entry.payload.value.deletedBy.has(id)) // intersect moderator set and deletedBy
             if (intersect.length > 0){ // if there is an intersection, one of our moderators has deleted this post
                 entry.payload.value.hide = true
                 return entry
