@@ -28,10 +28,10 @@ export class ThreadIndex {
           const deletedPost = this._index.get(deleteHash)
           if (deletedPost.payload.value.deletedBy == undefined) deletedPost.payload.value.deletedBy = new Set<string>([]) // add set if undefined
           if (OP === 'DEL') { // delete post
-            deletedPost.payload.value.deletedBy.add(item.identity.publicKey)
+            deletedPost.payload.value.deletedBy.add(item.identity.id)
           }
           if (OP === 'UNDEL') { // undelete post
-            deletedPost.payload.value.deletedBy.delete(item.identity.publicKey)
+            deletedPost.payload.value.deletedBy.delete(item.identity.id)
           }
           this._index.set(deleteHash, deletedPost) // update the (un)deleted post in the index
         }
