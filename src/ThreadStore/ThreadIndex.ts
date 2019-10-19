@@ -11,7 +11,7 @@ export class ThreadIndex {
   
     updateIndex(oplog: {values: LogEntry<Post>[]}) {
       this._index = new Map<string,LogEntry<Post>>()
-      oplog.values.reduce((handled: string[], item) => {
+      oplog.values.reduce((handled: string[], item: LogEntry<Post>) => {
         if(!handled.includes(item.hash)) {
           handled.push(item.hash)
           const OP = item.payload.op
