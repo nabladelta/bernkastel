@@ -14,14 +14,23 @@ export class ThreadIndex {
       oplog.values.reduce((handled: string[], item) => {
         if(!handled.includes(item.hash)) {
           handled.push(item.hash)
-          if(item.payload.op === 'ADD') {
+
+          const OP = item.payload.op
+          if (OP === 'ADD') { // we want to add a post
             this._index.set(item.hash, item)
-          } else if(item.payload.op === 'DEL') {
+          }
+          if (OP === 'DEL' || OP === 'UNDEL') { // we want to delete/undelete a post
             const deleteHash = item.payload.value.delete
-            if (this._index.has(deleteHash)){ // post to be deleted exists
-              const deletePost = this._index.get(item.payload.value.delete)
-              deletePost.payload.value.deleted.push([item.hash, item.identity.publicKey])
-              this._index.set(deleteHash, deletePost)
+            const deletedPost = this._index.get(deleteHash)
+            if (this._index.has(deleteHash)){ // post to be (un)deleted exists
+              if (deletedPost.payload.value.deletedBy == undefined) deletedPost.payload.value.deletedBy = new Set<string>([]) // add set if undefined
+              if (OP === 'DEL'){ // delete post
+                deletedPost.payload.value.deletedBy.add(item.identity.publicKey)
+              }
+              if (OP === 'UNDEL') { // undelete post
+                deletedPost.payload.value.deletedBy.delete(item.identity.publicKey)
+              }
+              this._index.set(deleteHash, deletedPost)
             }
           }
         }
