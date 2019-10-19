@@ -2,8 +2,11 @@ import IPFS from "ipfs";
 import OrbitDB from "orbit-db"
 import ThreadStore from './ThreadStore'
 import {Post} from './Post'
+import Identities, { Identity } from "orbit-db-identity-provider";
 interface IThreadOptions {
     moderators?: Set<string>
+    identity?: Identity
+    anonymous?: boolean
 }
 class Thread {
     public ipfs: IPFS
@@ -11,28 +14,28 @@ class Thread {
     public db: ThreadStore
     public ready: Promise<void> // resolves when the thread is ready
     public moderators: Set<string> // ids of moderators
+    public ownPosts: Set<string> // hashes of own posts
+    public anonymous: boolean
+
     constructor(ipfs: IPFS, orbit: OrbitDB, address?: string, options?: IThreadOptions){
         this.ipfs = ipfs
         this.orbit = orbit
-        this.setOptions(options)
+        this.ownPosts = new Set<string>([])
         this.ready = new Promise(async (resolve, reject) => {
-            try {
-                if (address == undefined){
-                    this.db = await this.orbit.create(Date.now().toString(), 'feed', {write: ["*"]}) as ThreadStore
-                } else {
-                    this.db = await this.orbit.open(address) as ThreadStore
-                }
-                //this.db.setIdentity()
-                this.db.events.on('replicated', this.replicated)
-            } catch {
-                reject()
+            if (address == undefined){
+                this.db = await this.orbit.create(Date.now().toString(), 'thread', {write: ["*"]}) as ThreadStore
+            } else {
+                this.db = await this.orbit.open(address) as ThreadStore
             }
+            if (options) this.setOptions(options)
+            this.db.events.on('replicated', this.replicated)
             resolve()
         })
     }
     setOptions(options: IThreadOptions){
-        this.moderators = options.moderators
-
+        if (options.moderators) this.moderators = options.moderators
+        if (options.identity) this.db.setIdentity(options.identity)
+        if (options.anonymous) this.anonymous = options.anonymous
     }
     get posts(){
         return this.db.all.map((entry) => {
@@ -48,14 +51,23 @@ class Thread {
                 entry.payload.value.hide = true
                 return entry
             }
+            return entry
         })
     }
     async post(post: Post){
+        if (this.anonymous){
+            const identity = await Identities.createIdentity({identityKeysPath: `./orbitdb/keys/${Date.now()}`})
+            this.db.setIdentity(identity)
+        }
         const hash = await this.db.add(post)
+        this.ownPosts.add(hash)
         return hash
     }
-    async delete(hash: string){
+    async deletePost(hash: string){
         return await this.db.del(hash) // returns hash of delete operation
+    }
+    async undeletePost(hash: string){
+        return await this.db.undel(hash) // returns hash of undelete operation
     }
     read(options?: {
         gt?: string;
