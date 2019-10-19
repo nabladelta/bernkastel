@@ -2,7 +2,7 @@ import IPFS from "ipfs";
 import OrbitDB from "orbit-db"
 import ThreadStore from './ThreadStore'
 import {Post} from './Post'
-export class Thread {
+class Thread {
     public ipfs: IPFS
     public orbit: OrbitDB
     public db: ThreadStore
@@ -43,3 +43,4 @@ export class Thread {
         //TODO: find new entries
     }
 }
+export = Thread
