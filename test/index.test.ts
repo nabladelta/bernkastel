@@ -49,7 +49,7 @@ describe('ThreadStore', () => {
     it('marks deleted posts and undeletes', async () => {
       const db = (await orbit.create(Date.now().toString(), 'thread')) as ThreadStore
       const h1 = await db.add({time: Date.now(), message: "1"})
-      const h2 = await db.remove(h1)
+      const h2 = await db.del(h1)
       expect(db.get(h1).payload.value.deletedBy.has(db.get(h2).identity.id)).eq(true)
       const h3 = await db.undel(h1)
       expect(db.get(h1).payload.value.deletedBy.has(db.get(h2).identity.id)).eq(false)

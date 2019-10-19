@@ -13,9 +13,6 @@ class ThreadStore extends EventStore<Post> {
     get all (){
       return Array.from(this._index._index.values())
     }
-    remove (hash: string) {
-      return this.del(hash)
-    }
     del (hash: string) {
       const operation = {
         op: 'DEL',
