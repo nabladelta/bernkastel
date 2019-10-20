@@ -4,6 +4,9 @@ import OrbitDB from "orbit-db";
 import { doesNotReject } from 'assert';
 import ThreadStore from '../src/ThreadStore';
 import {Post} from '../src/Post'
+import Thread from '../src/Thread'
+import Identities from 'orbit-db-identity-provider';
+
 const now = Date.now()
 const ipfsOptions = {
   repo: `./orbitdb/${now}/ipfs`,
@@ -21,8 +24,9 @@ const ipfsOptions = {
   }
 }
 const orbitoptions = { directory: `./orbitdb/${now}/orbitdb` }
-var node;
-var orbit;
+var node: ipfs;
+var orbit: OrbitDB;
+
 describe('IPFS & OrbitDB', function() {
     it('starts IPFS and OrbitDB', async () => {
       node = await initIPFS(ipfsOptions)
@@ -54,4 +58,43 @@ describe('ThreadStore', () => {
       const h3 = await db.undel(h1)
       expect(db.get(h1).payload.value.deletedBy.has(db.get(h2).identity.id)).eq(false)
     })
+})
+describe('Thread', () => {
+  it('posts', async () => {
+    const thread = new Thread({ipfs: node, orbit})
+    await thread.ready
+    const h = await thread.post({time: Date.now(), message:"1"})
+    expect(thread.posts[0].hash).eq(h)
+    expect(thread.posts[0].payload.value.hide).eq(undefined)
+  })
+  it('deletes and undeletes posts', async () => {
+    const thread = new Thread({ipfs: node, orbit})
+    await thread.ready
+    const h = await thread.post({time: Date.now(), message:"1"})
+    expect(thread.posts[0].hash).eq(h)
+    const h2 = await thread.deletePost(h)
+    expect(thread.posts[0].payload.value.hide).eq(true)
+    const h3 = await thread.undeletePost(h)
+    expect(thread.posts[0].payload.value.hide).eq(undefined)
+  })
+  it('anonymous posting', async () => {
+    const thread = new Thread({ipfs: node, orbit, anonymous: true})
+    await thread.ready
+    const h = await thread.post({time: Date.now(), message:"1"})
+    const id = thread.db.get(h).identity.id
+    const h2 = await thread.post({time: Date.now(), message:"2"})
+    const id1 = thread.db.get(h2).identity.id
+    expect(id).not.eq(id1)
+  })
+  it('custom identity', async () => {
+    const identid = `${Date.now()}`
+    const identity = await Identities.createIdentity({id: identid, identityKeysPath: `./orbitdb/keys/${Date.now()}`})
+    const thread = new Thread({ipfs: node, orbit, identity})
+    await thread.ready
+    const h = await thread.post({time: Date.now(), message:"1"})
+    const id = thread.db.get(h).identity.id
+    const h2 = await thread.post({time: Date.now(), message:"2"})
+    const id1 = thread.db.get(h2).identity.id
+    expect(id).eq(id1).eq(identity.id)
+  })
 })
