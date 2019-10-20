@@ -27,6 +27,7 @@ export async function initIPFS(options: {[key: string]: any}){
 export async function initOrbit(ipfs: IPFS, options: {[key: string]: any}){
     AccessControllers.addAccessController({AccessController: ThreadAccessController})
     OrbitDB.addDatabaseType('thread', ThreadStore)
+    options.AccessControllers = AccessControllers
     const orbit = await OrbitDB.createInstance(ipfs, options)
     return orbit
 }
