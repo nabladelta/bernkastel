@@ -1,6 +1,8 @@
 import IPFS from "ipfs";
 import OrbitDB from "orbit-db"
 import ThreadStore from './ThreadStore'
+import ThreadAccessController from './ThreadAccessController'
+import AccessControllers from 'orbit-db-access-controllers'
 export const ipfsOptions = {
     repo: `./orbitdb/default/ipfs`,
     relay: { enabled: true, hop: { enabled: true, active: true } },
@@ -23,6 +25,7 @@ export async function initIPFS(options: {[key: string]: any}){
     return node
 }
 export async function initOrbit(ipfs: IPFS, options: {[key: string]: any}){
+    AccessControllers.addAccessController({AccessController: ThreadAccessController})
     OrbitDB.addDatabaseType('thread', ThreadStore)
     const orbit = await OrbitDB.createInstance(ipfs, options)
     return orbit
