@@ -4,11 +4,11 @@ import { Post } from "../Post"
 class ThreadStore extends EventStore<Post> {
     _type: string
     _index: ThreadIndex
-    constructor (ipfs: any, id: any, dbname: string, options: {[key: string]: object}) {
+    constructor (ipfs: any, id: any, dbname: string, options: IStoreOptions) {
       if(!options) options = {}
       if(!options.Index) Object.assign(options, {Index: ThreadIndex})
       super(ipfs, id, dbname, options)
-      this._type = 'feed'
+      this._type = 'thread'
     }
     get all (){
       return Array.from(this._index._index.values())
