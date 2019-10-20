@@ -97,4 +97,15 @@ describe('Thread', () => {
     const id1 = thread.db.get(h2).identity.id
     expect(id).eq(id1).eq(identity.id)
   })
+  it('post constraints', async () => {
+    const thread = new Thread({ipfs: node, orbit})
+    await thread.ready
+    try {
+      const h = await thread.post({time: Date.now(), message:"1", hide: true})
+      expect(false).eq(true)
+    } catch {
+      expect(true).eq(true)
+    }
+    expect(thread.posts.length).eq(0)
+  })
 })
