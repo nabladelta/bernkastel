@@ -18,7 +18,7 @@ class Thread {
     public ownPosts: Set<string> // hashes of own posts
     public anonymous: boolean
     _anonymousKeystore: Keystore
-    
+
     constructor({ ipfs, orbit, address, moderators = new Set<string>(), anonymous = false, identity } : 
                 {ipfs: IPFS, orbit: OrbitDB, address?: string, moderators?: Set<string>, anonymous?: boolean, identity?: Identity}){
         this.ipfs = ipfs
@@ -28,7 +28,7 @@ class Thread {
         this.anonymous = anonymous
         this.ready = new Promise(async (resolve, reject) => {
             if (address == undefined){
-                this.db = await this.orbit.create(Date.now().toString(), 'thread', {accessController: {write: ["*"]}}) as ThreadStore
+                this.db = await this.orbit.create(Date.now().toString(), 'thread', {accessController: { type: 'thread', write: ["*"] }}) as ThreadStore
             } else {
                 this.db = await this.orbit.open(address) as ThreadStore
             }
