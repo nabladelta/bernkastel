@@ -17,8 +17,11 @@ class Thread {
     public moderators: Set<string> // ids of moderators
     public ownPosts: Set<string> // hashes of own posts
     public anonymous: boolean
+    // Keystores
     _anonymousKeystore: Keystore
-
+    _defaultKeystore: Keystore
+    _customKeystore: Keystore
+    _anonymousKeystorePath: string
     constructor({ ipfs, orbit, address, moderators = new Set<string>(), anonymous = false, identity } : 
                 {ipfs: IPFS, orbit: OrbitDB, address?: string, moderators?: Set<string>, anonymous?: boolean, identity?: Identity}){
         this.ipfs = ipfs
@@ -32,10 +35,16 @@ class Thread {
             } else {
                 this.db = await this.orbit.open(address) as ThreadStore
             }
-            if (identity) this.identity = identity
+            this._defaultKeystore = this.db.identity.provider.keystore
+            if (identity) {
+                this.identity = identity
+                this._customKeystore = identity.provider.keystore
+            }
+            this._anonymousKeystorePath = `./orbitdb/anonymous/${Date.now()}`
+            const anonId = await Identities.createIdentity({identityKeysPath: this._anonymousKeystorePath, id:`${Date.now()}`})
+            this._anonymousKeystore = this.identity.provider.keystore
             if (anonymous) {
-                this.identity = await Identities.createIdentity({identityKeysPath: `./orbitdb/anonymous/${Date.now()}`, id:`${Date.now()}`})
-                this._anonymousKeystore = this.identity.provider.keystore
+                this.identity = anonId
             }
             this.bindOnReplicated(this.replicated)
             resolve()
