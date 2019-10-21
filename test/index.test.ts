@@ -10,18 +10,6 @@ import Identities from 'orbit-db-identity-provider';
 const now = Date.now()
 const ipfsOptions = {
   repo: `./orbitdb/${now}/ipfs`,
-  relay: { enabled: true, hop: { enabled: true, active: true } },
-  EXPERIMENTAL: {
-    pubsub: true,
-    dht: true,
-  },
-  libp2p: {
-      config: {
-      dht: {
-          enabled: true
-      }
-    }
-  }
 }
 const orbitoptions = { directory: `./orbitdb/${now}/orbitdb` }
 var node: ipfs;
