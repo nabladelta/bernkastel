@@ -19,13 +19,13 @@ export const ipfsOptions = {
     }
 }
 export async function initIPFS(options: {[key: string]: any}){
+    options = {...ipfsOptions, ...options}
     let node = new IPFS(options)
     node.on('error', error => console.error(error.message))
     await new Promise((resolve, reject) => {node.on('ready', resolve)})
     return node
 }
 export async function initOrbit(ipfs: IPFS, options: {[key: string]: any}){
-    options = {...ipfsOptions, ...options}
     AccessControllers.addAccessController({AccessController: ThreadAccessController})
     OrbitDB.addDatabaseType('thread', ThreadStore)
     options.AccessControllers = AccessControllers
