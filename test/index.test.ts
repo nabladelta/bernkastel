@@ -54,9 +54,9 @@ describe('ThreadStore', () => {
       const db = (await orbit.create(Date.now().toString(), 'thread')) as ThreadStore
       const h1 = await db.add({time: Date.now(), message: "1"})
       const h2 = await db.del(h1)
-      expect(db.get(h1).payload.value.deletedBy.has(db.get(h2).identity.id)).eq(true)
+      expect(db.get(h1).payload.value.deletedBy.has(db.get(h2).identity.publicKey)).eq(true)
       const h3 = await db.undel(h1)
-      expect(db.get(h1).payload.value.deletedBy.has(db.get(h2).identity.id)).eq(false)
+      expect(db.get(h1).payload.value.deletedBy.has(db.get(h2).identity.publicKey)).eq(false)
     })
 })
 describe('Thread', () => {
@@ -103,7 +103,7 @@ describe('Thread', () => {
     const user = await Identities.createIdentity({id: `user`, keystore: ks})
     const invalidmod = await Identities.createIdentity({id: `notmod`, keystore: ks})
 
-    const thread = new Thread({ipfs: node, orbit, identity: user, moderators: new Set<string>([moderator.id])})
+    const thread = new Thread({ipfs: node, orbit, identity: user, moderators: new Set<string>([moderator.publicKey])})
     await thread.ready
     // making a post
     const h = await thread.post({time: Date.now(), message:"1"})
@@ -117,7 +117,7 @@ describe('Thread', () => {
     const id2 = thread.db.get(h2).identity.id
     expect(id2).eq(invalidmod.id)
     expect(thread.posts[0].payload.value.hide).eq(undefined)
-    expect(thread.posts[0].payload.value.deletedBy.has(invalidmod.id)).eq(true)
+    expect(thread.posts[0].payload.value.deletedBy.has(invalidmod.publicKey)).eq(true)
     // deletion by approved moderator
     thread.identity = moderator
     const h3 = await thread.deletePost(h)
@@ -125,7 +125,7 @@ describe('Thread', () => {
     const id3 = thread.db.get(h3).identity.id
     expect(id3).eq(moderator.id)
     expect(thread.posts[0].payload.value.hide).eq(true)
-    expect(thread.posts[0].payload.value.deletedBy.has(moderator.id)).eq(true)
+    expect(thread.posts[0].payload.value.deletedBy.has(moderator.publicKey)).eq(true)
   })
   it('post constraints', async () => {
     const thread = new Thread({ipfs: node, orbit})
