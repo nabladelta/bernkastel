@@ -97,11 +97,41 @@ describe('Thread', () => {
     const id1 = thread.db.get(h2).identity.id
     expect(id).eq(id1).eq(identity.id)
   })
+  it('moderation', async () => {
+    const moderator = await Identities.createIdentity({id: `mod`, identityKeysPath: `./orbitdb/keys/${Date.now()}`})
+    const ks = moderator.provider.keystore
+    const user = await Identities.createIdentity({id: `user`, keystore: ks})
+    const invalidmod = await Identities.createIdentity({id: `notmod`, keystore: ks})
+
+    const thread = new Thread({ipfs: node, orbit, identity: user, moderators: new Set<string>([moderator.id])})
+    await thread.ready
+    // making a post
+    const h = await thread.post({time: Date.now(), message:"1"})
+    const id = thread.db.get(h).identity.id
+    expect(id).eq(user.id)
+
+    // deletion by unapproved moderator
+    thread.identity = invalidmod
+    const h2 = await thread.deletePost(h)
+    thread.identity = user
+    const id2 = thread.db.get(h2).identity.id
+    expect(id2).eq(invalidmod.id)
+    expect(thread.posts[0].payload.value.hide).eq(undefined)
+    expect(thread.posts[0].payload.value.deletedBy.has(invalidmod.id)).eq(true)
+    // deletion by approved moderator
+    thread.identity = moderator
+    const h3 = await thread.deletePost(h)
+    thread.identity = user
+    const id3 = thread.db.get(h3).identity.id
+    expect(id3).eq(moderator.id)
+    expect(thread.posts[0].payload.value.hide).eq(true)
+    expect(thread.posts[0].payload.value.deletedBy.has(moderator.id)).eq(true)
+  })
   it('post constraints', async () => {
     const thread = new Thread({ipfs: node, orbit})
     await thread.ready
     try {
-      const h = await thread.post({time: Date.now(), message:"1", hide: true})
+      const h = await thread.post({time: Date.now(), message:"1", hide: true}) // property not allowed
       expect(false).eq(true)
     } catch {
       expect(true).eq(true)
