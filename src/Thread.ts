@@ -9,7 +9,7 @@ interface IThreadOptions {
     identity?: Identity
     anonymous?: boolean
 }
-class Thread {
+export default class Thread {
     public ipfs: IPFS
     public orbit: OrbitDB
     public db: ThreadStore
@@ -99,4 +99,3 @@ class Thread {
         this.db.events.on('replicated', fn)
     }
 }
-export = Thread

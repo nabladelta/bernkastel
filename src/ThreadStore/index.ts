@@ -1,2 +1,2 @@
 import ThreadStore from './ThreadStore'
-export = ThreadStore
+export default ThreadStore

@@ -1,7 +1,7 @@
 import EventStore from "orbit-db-eventstore"
 import {ThreadIndex} from './ThreadIndex'
 import { Post } from "../Post"
-class ThreadStore extends EventStore<Post> {
+export default class ThreadStore extends EventStore<Post> {
     _type: string
     _index: ThreadIndex
     constructor (ipfs: any, id: any, dbname: string, options: IStoreOptions) {
@@ -30,4 +30,3 @@ class ThreadStore extends EventStore<Post> {
       return this._addOperation(operation) as Promise<string>
     }
   }
-  export = ThreadStore
