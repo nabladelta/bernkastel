@@ -9,6 +9,6 @@
       //"allowJs": true,
       "outDir": "dist"
     },
-    "include": ["src/**/*", "test/**/*"],
+    "include": ["src/**/*", "test/**/*", "examples/run.ts"],
     "lib": ["es2015"]
   }
