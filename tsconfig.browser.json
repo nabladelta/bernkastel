@@ -6,9 +6,8 @@
       "moduleResolution": "node",
       "esModuleInterop": true,
       "lib": ["es2016", "dom", "es5"],
-      "module": "amd",
+      "module": "es2015",
       "declaration": true,
-      "outFile": "lib/index.js",
     },
     "include": [
       "./src/**/*"
