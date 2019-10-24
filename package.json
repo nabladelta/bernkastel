@@ -8,7 +8,8 @@
     "start": "tsc && node dist/src/index.js",
     "build": "tsc && tsc -p tsconfig.browser.json",
     "test": "mocha --exit --timeout 15000 -r ts-node/register test/**/*.test.ts",
-    "coverage": "nyc -r lcov --reporter=html -e .ts -x \"test/*.test.ts\" npm run test"
+    "coverage": "nyc -r lcov --reporter=html -e .ts -x \"test/*.test.ts\" npm run test",
+    "prepare" : "npm run build"
   },
   "author": "reasv",
   "license": "GPL-3.0-or-later",
