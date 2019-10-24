@@ -17,6 +17,7 @@ export default class Thread {
     public moderators: Set<string> // ids of moderators
     public ownPosts: Set<string> // hashes of own posts
     public anonymous: boolean
+    public cid: string //cid of announce file
     // Keystores
     _anonymousKeystore: Keystore
     _defaultKeystore: Keystore
@@ -33,6 +34,8 @@ export default class Thread {
             if (address == undefined){
                 this.db = await this.orbit.create(Date.now().toString(), 'thread', {accessController: { type: 'thread', write: ["*"] }}) as ThreadStore
             } else {
+                await this.announce(address)
+                await this.discoverPeers()
                 this.db = await this.orbit.open(address) as ThreadStore
             }
             this._defaultKeystore = this.db.identity.provider.keystore
@@ -97,5 +100,19 @@ export default class Thread {
     }
     bindOnReplicated(fn: (a: string) => void){ // bind a function to the replicate event
         this.db.events.on('replicated', fn)
+    }
+    async announce(address?: string){
+        if (!address) address = `${this.db.address.root}/${this.db.address.path}`
+        const file = await this.ipfs.add(Buffer.from(address))
+        this.cid = file[0].hash
+        return file[0].hash as string
+    }
+    async discoverPeers(){
+        if (!this.cid) await this.announce()
+        const provs: IPFS.PeerInfo[] = await this.ipfs.dht.findProvs(this.cid, {timeout: 10000})
+        for (var prov of provs) {
+            if (prov.id.toB58String() == (await this.ipfs.id()).id) continue
+            console.log("Connecting to ", prov.id.toB58String(), await this.ipfs.swarm.connect('/p2p-circuit/ipfs/'+prov.id.toB58String()))
+        }
     }
 }
