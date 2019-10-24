@@ -12,7 +12,7 @@ export default class ThreadAccessController extends OrbitDBAccessController{
     async canAppend(entry: LogEntry<Post>, identityProvider: Identities){
         if (!super.canAppend(entry, identityProvider)) return false
         const post = entry.payload.value
-        if (!post.time) return false
+        if (!post.time || post.time > Date.now()) return false
         if (post.message && post.message.length > 4000) return false
         if (post.title && post.title.length > 128) return false
         if (post.author && post.author.length > 128) return false
