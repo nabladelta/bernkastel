@@ -2,14 +2,14 @@
   "name": "bernkastel",
   "version": "0.1.0",
   "description": "A library implementing a decentralized forum system on IPFS and OrbitDB",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
   "scripts": {
     "start": "tsc && node dist/src/index.js",
     "build": "tsc && tsc -p tsconfig.browser.json",
     "test": "mocha --exit --timeout 15000 -r ts-node/register test/**/*.test.ts",
     "coverage": "nyc -r lcov --reporter=html -e .ts -x \"test/*.test.ts\" npm run test",
-    "prepare" : "npm run build"
+    "prepare": "npm run build"
   },
   "author": "reasv",
   "license": "GPL-3.0-or-later",
