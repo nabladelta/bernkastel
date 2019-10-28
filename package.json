@@ -27,8 +27,10 @@
   "dependencies": {
     "@types/events": "^3.0.0",
     "@types/orbit-db": "git+https://github.com/reasv/orbit-db-types.git",
-    "ipfs": "github:ipfs/js-ipfs#master",
-    "lodash": "^4.17.15",
-    "orbit-db": "github:orbitdb/orbit-db#master"
+    "lodash": "^4.17.15"
+  },
+  "peerDependencies": {
+    "orbit-db": "github:orbitdb/orbit-db#master",
+    "ipfs": "github:ipfs/js-ipfs#master"
   }
 }
