@@ -27,6 +27,8 @@
   "dependencies": {
     "@types/events": "^3.0.0",
     "@types/orbit-db": "git+https://github.com/reasv/orbit-db-types.git",
+    "ipfs-http-response": "^0.4.0",
+    "ipfs-postmsg-proxy": "^3.1.1",
     "lodash": "^4.17.15"
   },
   "peerDependencies": {
