@@ -4,23 +4,9 @@ import ThreadStore from './ThreadStore'
 import ThreadAccessController from './ThreadAccessController'
 import AccessControllers from 'orbit-db-access-controllers'
 import Thread from "./Thread";
-export const ipfsOptions = {
-    repo: `./orbitdb/default/ipfs`,
-    relay: { enabled: true, hop: { enabled: true, active: true } },
-    EXPERIMENTAL: {
-      pubsub: true,
-      dht: true,
-    },
-    libp2p: {
-        config: {
-            dht: {
-                enabled: true
-            }
-        }
-    }
-}
+import IpfsOptions from './IpfsDefaults'
 export async function initIPFS(options: {[key: string]: any}){
-    options = {...ipfsOptions, ...options}
+    options = {...IpfsOptions, ...options}
     let node = new IPFS(options)
     node.on('error', error => console.error(error.message))
     await new Promise((resolve, reject) => {node.on('ready', resolve)})
