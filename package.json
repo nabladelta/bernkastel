@@ -12,7 +12,7 @@
     "prepare": "npm run build"
   },
   "author": "reasv",
-  "license": "GPL-3.0-or-later",
+  "license": "AGPL-3.0-or-later",
   "devDependencies": {
     "@types/chai": "^4.2.3",
     "@types/mocha": "^5.2.7",
@@ -26,9 +26,7 @@
   },
   "dependencies": {
     "@types/events": "^3.0.0",
-    "@types/orbit-db": "git+https://github.com/reasv/orbit-db-types.git",
-    "ipfs-http-response": "^0.4.0",
-    "ipfs-postmsg-proxy": "^3.1.1",
+    "@types/orbit-db": "github:reasv/orbit-db-types",
     "lodash": "^4.17.15"
   },
   "peerDependencies": {
