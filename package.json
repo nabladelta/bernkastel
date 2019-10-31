@@ -22,13 +22,11 @@
     "ts-node": "^8.4.1",
     "tslint": "^5.20.0",
     "typescript": "^3.6.3",
-    "ws": "^7.1.2"
+    "ws": "^7.1.2",
+    "@types/events": "^3.0.0"
   },
   "dependencies": {
-    "@types/events": "^3.0.0",
-    "@types/orbit-db": "github:reasv/orbit-db-types"
-  },
-  "peerDependencies": {
+    "@types/orbit-db": "github:reasv/orbit-db-types",
     "orbit-db": "github:orbitdb/orbit-db#master",
     "ipfs": "github:ipfs/js-ipfs#master"
   }
