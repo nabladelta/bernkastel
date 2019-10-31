@@ -1,10 +1,11 @@
-import IPFS from "ipfs";
+import IPFS from "ipfs"
 import OrbitDB from "orbit-db"
 import ThreadStore from './ThreadStore'
 import ThreadAccessController from './ThreadAccessController'
 import AccessControllers from 'orbit-db-access-controllers'
-import Thread from "./Thread";
+import Thread from "./Thread"
 import IpfsOptions from './IpfsDefaults'
+
 export async function initIPFS(options: {[key: string]: any}){
     options = {...IpfsOptions, ...options}
     let node = new IPFS(options)
