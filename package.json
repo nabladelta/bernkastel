@@ -26,7 +26,7 @@
   },
   "dependencies": {
     "@types/events": "^3.0.0",
-    "@types/orbit-db": "git+https://github.com/reasv/orbit-db-types.git",
+    "@types/orbit-db": "github:reasv/orbit-db-types",
     "lodash": "^4.17.15"
   },
   "peerDependencies": {
