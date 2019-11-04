@@ -5,6 +5,8 @@ export interface Post {
     attachments?: string[],
     title?: string,
     time: number
+    topic?: string //hash of thread OP
+    type?: 'post' | 'moderation'
     delete?: string // hash of post to delete, include if deleting a post
     // properties that are added by the system. Cannot be set by creator of post.
     deletedBy?: Set<string> // set of public keys that want this deleted
