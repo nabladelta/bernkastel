@@ -34,8 +34,8 @@ export default class Thread {
             if (address == undefined){
                 this.db = await this.orbit.create(Date.now().toString(), 'thread', {accessController: { type: 'thread', write: ["*"] }}) as ThreadStore
             } else {
-                await this.announce(address)
-                await this.discoverPeers()
+                //await this.announce(address)
+                //await this.discoverPeers()
                 this.db = await this.orbit.open(address) as ThreadStore
             }
             this._defaultKeystore = this.db.identity.provider.keystore
