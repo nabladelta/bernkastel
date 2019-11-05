@@ -16,15 +16,15 @@ export class ThreadIndex {
       return this._index
     }
     updateThreads(item: LogEntry<Post>){
+      const OP = item.payload.op
       var topic: string = item.payload.value.topic
-      if (!topic){
+      if (!topic && OP === 'ADD'){
         // new thread
         topic = item.hash
         this._threads[topic] = new Map<string, LogEntry<Post>>()
       }
       this._threads[topic].set(item.hash, item) // add post
 
-      const OP = item.payload.op
       if (OP === 'ADD' && !item.payload.value.sage){
         // bump topic to the top of the set
         this._topics.delete(topic)
