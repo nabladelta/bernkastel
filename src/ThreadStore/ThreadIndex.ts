@@ -22,11 +22,14 @@ export class ThreadIndex {
         topic = item.hash
         this._threads[topic] = new Map<string, LogEntry<Post>>()
       }
-      // bump topic to the top of the set
-      this._topics.delete(topic)
-      this._topics.add(topic)
-
       this._threads[topic].set(item.hash, item) // add post
+
+      const OP = item.payload.op
+      if (OP === 'ADD' && !item.payload.value.sage){
+        // bump topic to the top of the set
+        this._topics.delete(topic)
+        this._topics.add(topic)
+      }
     }
     applyModeration(item: LogEntry<Post>){
       const OP = item.payload.op
@@ -56,10 +59,11 @@ export class ThreadIndex {
 
         this._index.set(item.hash, item) // add operation to index
 
+        this.updateThreads(item) // update threads with new posts/ops
+
         if (OP === 'ADD') return handled // if we're adding a post, we're done
 
-        this.applyModeration(item)
-        this.updateThreads(item)
+        this.applyModeration(item) // apply actions for DEL/UNDEL
         return handled
       }, [])
     }
