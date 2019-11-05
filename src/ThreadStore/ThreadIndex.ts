@@ -18,6 +18,7 @@ export class ThreadIndex {
     updateThreads(item: LogEntry<Post>){
       const OP = item.payload.op
       var topic: string = item.payload.value.topic
+      if (!topic && OP !== 'ADD') return
       if (!topic && OP === 'ADD'){
         // new thread
         topic = item.hash
