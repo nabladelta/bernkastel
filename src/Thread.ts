@@ -10,7 +10,7 @@ export default class Thread {
     public orbit: OrbitDB
     public db: ThreadStore
     public ready: Promise<void> // resolves when the thread is ready
-    public moderators: Set<string> // ids of moderators
+    public _moderators: Set<string> // ids of moderators
     public ownPosts: Set<string> // hashes of own posts
     public anonymous: boolean
     public cid: string //cid of announce file
@@ -24,7 +24,7 @@ export default class Thread {
         this.ipfs = ipfs
         this.orbit = orbit
         this.ownPosts = new Set<string>()
-        this.moderators = moderators
+        this._moderators = moderators
         this.anonymous = anonymous
         this.ready = new Promise(async (resolve, reject) => {
             if (address == undefined){
@@ -48,6 +48,13 @@ export default class Thread {
             this.bindOnReplicated(this.replicated)
             resolve()
         })
+    }
+    set moderators (moderators: Set<string>){
+        this._moderators = moderators
+        this.db._index.refreshIndex()
+    }
+    get moderators (){
+        return this._moderators
     }
     get identity (){
         return this.db ? this.db.identity : undefined
