@@ -3,10 +3,16 @@ export class ThreadIndex {
     _index: Map<string,LogEntry<Post>> //{[key: string]: LogEntry<Post>}
     _threads: {[key: string]: Map<string, LogEntry<Post>>} // contains posts separated in threads
     _topics: Set<string>
+    _postcounts: {[key: string]: number}
+    bumpLimit: number
+    threadLimit: number
     constructor() {
       this._index = new Map<string,LogEntry<Post>>()
       this._threads = {}
       this._topics = new Set<string>()
+      this._postcounts = {}
+      this.bumpLimit = 250
+      this.threadLimit = 128
     }
     
     get() {
@@ -23,8 +29,27 @@ export class ThreadIndex {
         // new thread
         topic = item.hash
         this._threads[topic] = new Map<string, LogEntry<Post>>()
+        this._postcounts[topic] = 1
+        this._topics.add(topic)
       }
+
+      /**
+      * If the number of threads is above the limit,
+      * delete the first thread in the set,
+      * which is the one bumped least recently.
+      */
+      if (this._topics.size > this.threadLimit){
+        const lastTopic = this._topics.values().next().value
+        this._topics.delete(lastTopic)
+      }
+
+      if (!this._topics.has(topic)) return // thread does not exist or was deleted
+
       this._threads[topic].set(item.hash, item) // add post
+      this._postcounts[topic]++ // increase post count
+
+      // never bump if over bump limit
+      if (this._postcounts[topic] > this.bumpLimit) return
 
       if (OP === 'ADD' && !item.payload.value.sage){
         // bump topic to the top of the set
