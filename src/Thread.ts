@@ -4,11 +4,7 @@ import ThreadStore from './ThreadStore'
 import {Post} from './Post'
 import Identities, { Identity } from "orbit-db-identity-provider";
 import { Keystore } from "orbit-db-keystore";
-interface IThreadOptions {
-    moderators?: Set<string>
-    identity?: Identity
-    anonymous?: boolean
-}
+
 export default class Thread {
     public ipfs: IPFS
     public orbit: OrbitDB
