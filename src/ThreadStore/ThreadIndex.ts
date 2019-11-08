@@ -59,6 +59,8 @@ export class ThreadIndex {
     }
     applyModeration(item: LogEntry<Post>){
       const OP = item.payload.op
+      // if we're adding a post, we do nothing
+      if (OP === 'ADD') return
       // we want to delete/undelete a post
       const deleteHash = item.payload.value.delete
       if (!this._index.has(deleteHash)) return // ensure post to be (un)deleted exists
@@ -73,6 +75,13 @@ export class ThreadIndex {
       }
       this._index.set(deleteHash, deletedPost) // update the (un)deleted post in the index
     }
+    validateModerationCallback(item: LogEntry<Post>){
+
+    }
+    refreshIndex(){
+      this.updateIndex({values: this.get()})
+    }
+
     updateIndex(oplog: {values: LogEntry<Post>[]}) {
       this._index = new Map<string,LogEntry<Post>>()
       oplog.values.reduce((handled: string[], item: LogEntry<Post>) => {
@@ -85,11 +94,9 @@ export class ThreadIndex {
 
         this._index.set(item.hash, item) // add operation to index
 
-        this.updateThreads(item) // update threads with new posts/ops
-
-        if (OP === 'ADD') return handled // if we're adding a post, we're done
-
         this.applyModeration(item) // apply actions for DEL/UNDEL
+        
+        this.updateThreads(item) // update threads with new posts/ops
         return handled
       }, [])
     }
