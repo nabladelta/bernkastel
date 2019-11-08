@@ -78,6 +78,13 @@ export default class Thread {
         }
         return entry
     }
+    get threads(){
+        this.db.all.map((entry) => this.validateModeration(entry))
+        return this.db.threads
+    }
+    get topics(){
+        return this.db.topics
+    }
     get posts(){
         return this.db.all.map((entry) => this.validateModeration(entry))
     }
