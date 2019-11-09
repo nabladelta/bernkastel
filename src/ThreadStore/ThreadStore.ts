@@ -13,6 +13,15 @@ export default class ThreadStore extends EventStore<Post> {
     get all (){
       return Array.from(this._index._index.values())
     }
+    get allMap(){
+      return this._index._index
+    }
+    get threads(){
+      return this._index._threads
+    }
+    get topics(){
+      return this._index._topics
+    }
     del (hash: string) {
       const operation = {
         op: 'DEL',
