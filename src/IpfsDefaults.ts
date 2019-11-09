@@ -1,7 +1,7 @@
 const options = {
     repo: `./orbitdb/default/ipfs`,
     relay: { enabled: true, hop: { enabled: true, active: true } },
-    EXPERIMENTAL: {
+    /* EXPERIMENTAL: {
       pubsub: true,
       dht: true,
     },
@@ -11,6 +11,6 @@ const options = {
                 enabled: true
             }
         }
-    }
+    } */
 }
 export default options
