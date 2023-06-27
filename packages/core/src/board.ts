@@ -1,8 +1,8 @@
-import { Lambdadelta, Timeline }  from "@bernkastel/lambdadelta"
-import { NullifierSpec } from "@bernkastel/lambdadelta"
+import { Lambdadelta, Timeline }  from "@nabladelta/lambdadelta"
+import { NullifierSpec } from "@nabladelta/lambdadelta"
 import { deserializePost, serializePost } from "./utils"
-import { RLN, RLNGFullProof, VerificationResult, nullifierInput } from '@bernkastel/rln'
-import { FeedEventHeader } from "@bernkastel/lambdadelta/src/lambdadelta"
+import { RLN, RLNGFullProof, VerificationResult, nullifierInput } from '@nabladelta/rln'
+import { FeedEventHeader } from "@nabladelta/lambdadelta/src/lambdadelta"
 import crypto from 'crypto'
 
 const TYPE_THREAD = "THREAD"

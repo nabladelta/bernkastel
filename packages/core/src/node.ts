@@ -1,4 +1,4 @@
-import { LDNodeBase, Lambdadelta }  from "@bernkastel/lambdadelta"
+import { LDNodeBase, Lambdadelta }  from "@nabladelta/lambdadelta"
 import { BulletinBoard } from "./board"
 
 export class BBNode extends LDNodeBase<BulletinBoard> {
