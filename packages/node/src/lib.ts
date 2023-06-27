@@ -43,7 +43,7 @@ export async function processAttachment(fileData: IFileData, post: IPost, topic:
             const meta = await sharp(buf).metadata()
             post.w = meta.width
             post.h = meta.height
-            post.mime = mime.getType(meta.format || "") || fileData.type
+            post.mime = mime.lookup(meta.format || "") || fileData.type
         } catch (e) {
             log.error(e)
             throw new Error("Failed to process image")

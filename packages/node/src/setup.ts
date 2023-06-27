@@ -1,4 +1,4 @@
-import { RLN } from "@bernkastel/rln"
+import { RLN } from "@nabladelta/rln"
 import { BBNode } from "@bernkastel/core"
 import { DATA_FOLDER, GROUPID, GROUP_FILE, SECRET, TOPICS } from './constants'
 

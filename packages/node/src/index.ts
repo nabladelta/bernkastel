@@ -101,7 +101,7 @@ app.get(`/api/thumb/:id\.:ext?`, async (req: Request, res: Response) => {
 
   const options = {
     root: dir,
-    dotfiles: 'deny',
+    dotfiles: "deny" as const,
     headers: {}
   }
   
