@@ -78,7 +78,7 @@ export class BulletinBoard extends Lambdadelta {
         if (entry.value.blob.byteLength > MAX_ATTACHMENT_SIZE!) {
             return false // Attachment too big
         }
-        const contentBuf: Buffer = await peer.drive.get(`/attachments/${attachmentHash}`)
+        const contentBuf: Buffer | null = await peer.drive.get(`/attachments/${attachmentHash}`)
         if (!contentBuf) {
             return false
         }
@@ -158,7 +158,7 @@ export class BulletinBoard extends Lambdadelta {
     }
 
     public async retrieveAttachment(attachmentHash: string) {
-        const contentBuf: Buffer = await this.drive.get(`/attachments/${attachmentHash}`)
+        const contentBuf: Buffer | null = await this.drive.get(`/attachments/${attachmentHash}`)
         if (!contentBuf) {
             return false
         }

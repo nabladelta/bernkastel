@@ -1,4 +1,4 @@
-import { GroupDataProvider, MemoryProvider, RLN } from "@bernkastel/rln"
+import { GroupDataProvider, MemoryProvider, RLN } from "@nabladelta/rln"
 import { BBNode } from "../src"
 import { Identity } from "@semaphore-protocol/identity"
 import { Logger } from "tslog"
