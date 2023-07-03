@@ -61,7 +61,7 @@ export class BulletinBoard extends Lambdadelta {
 
     protected async onSyncEvent(peerID: string, eventID: string) {
         const {header, content} = await this.getEventByID(eventID) || {}
-        if (content) await this.syncAttachment(peerID, deserializePost(content).sha256)
+        if (content) await this.syncAttachment(peerID, deserializePost(content).tim)
     }
 
     private async syncAttachment(peerID: string, attachmentHash?: string) {
@@ -84,7 +84,7 @@ export class BulletinBoard extends Lambdadelta {
         }
         const hash = crypto.createHash('sha256').update(contentBuf).digest('hex')
         if (hash !== attachmentHash) {
-            return false // Attachhment wrong hash
+            return false // Attachment wrong hash
         }
         await this.drive.put(`/attachments/${attachmentHash}`, contentBuf)
         return true

@@ -32,6 +32,7 @@ export async function processAttachment(fileData: IFileData, post: IPost, topic:
     if (buf.length > FILE_SIZE_LIMIT_UPLOAD) throw new Error(`File too large (FILE_SIZE_LIMIT_UPLOAD: ${buf.length} Bytes`)
     
     post.md5 = crypto.createHash('md5').update(buf).digest('base64')
+    post.sha256 = crypto.createHash('sha256').update(buf).digest('hex')
 
     if (fileData.type == 'video/webm' || fileData.type == 'video/mp4') {
         const videoInfo = await processVideo(buf)
@@ -52,15 +53,13 @@ export async function processAttachment(fileData: IFileData, post: IPost, topic:
 
     const encoded = encodeMime(buf, post.mime)
 
-    post.sha256 = crypto.createHash('sha256').update(encoded).digest('hex')
-
     // Where the period splits filename and ext
     const pos = (fileData.filename.lastIndexOf(".") - 1 >>> 0) + 1
 
     post.filename = fileData.filename.slice(0, pos)
     post.ext = fileData.filename.slice(pos) // Includes ., ex: ".jpg"
     post.fsize = buf.length
-    post.tim = post.sha256
+    post.tim = crypto.createHash('sha256').update(encoded).digest('hex')
     return { post, attachment: encoded }
 }
 
