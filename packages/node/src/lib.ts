@@ -60,14 +60,8 @@ export async function processAttachment(fileData: IFileData, post: IPost, topic:
     post.filename = fileData.filename.slice(0, pos)
     post.ext = fileData.filename.slice(pos) // Includes ., ex: ".jpg"
     post.fsize = buf.length
-    post.tim = topic + '-' + post.sha256
+    post.tim = post.sha256
     return { post, attachment: encoded }
-}
-
-export function parseFileID(fileID: string) {
-    const id = fileID.split('.')[0]
-    const [topic, attachmentHash] = id.split('-')
-    return {topic, attachmentHash}
 }
 
 async function processVideo(buf: Buffer) {

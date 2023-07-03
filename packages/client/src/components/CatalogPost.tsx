@@ -37,13 +37,13 @@ function CatalogPost({post}:{post: IPost}) {
         {post.tim && !isVideo(post) &&
             <Image
             objectFit='contain'
-            src={`${API_URL}/thumb/${post.tim}.jpg`}
+            src={`${API_URL}/thumb/${board}/${post.tim}.jpg`}
             alt={`${post.filename}${post.ext}`} />}
             {post.tim && isVideo(post) &&
             <Box
                 as='video'
                 loop={true}
-                src={`${API_URL}/file/${post.tim}${post.ext}`}
+                src={`${API_URL}/file/${board}/${post.tim}${post.ext}`}
                 title={`${post.filename}${post.ext}`}
                 objectFit='contain'
                 sx={{

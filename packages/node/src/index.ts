@@ -1,6 +1,6 @@
 import express, { Express, Request, Response } from 'express'
 import cors from 'cors'
-import { decodeMime, fileExists, makeThumbnail, parseFileID, processAttachment } from './lib'
+import { decodeMime, fileExists, makeThumbnail, processAttachment } from './lib'
 import path from 'path'
 import fs from 'fs'
 import { DATA_FOLDER, PORT, REQ_SIZE_LIMIT, THUMB_FORMAT, TOPICS } from './constants'
@@ -59,8 +59,10 @@ app.get('/api/boards\.:ext?', async (req: Request, res: Response) => {
   res.send(r)
 })
 
-app.get('/api/file/:id\.:ext?', async (req: Request, res: Response) => {
-  const {topic, attachmentHash} = parseFileID(req.params.id)
+app.get('/api/file/:topic/:id\.:ext?', async (req: Request, res: Response) => {
+  const topic = req.params.topic
+  const attachmentHash = req.params.id
+
   const client = node.getTopic(topic)
   if (!client) return NotFoundError(res)
   const content = await client.retrieveAttachment(attachmentHash)
@@ -75,7 +77,7 @@ app.get('/api/file/:id\.:ext?', async (req: Request, res: Response) => {
   res.send(data)
 })
 
-app.get(`/api/thumb/:id\.:ext?`, async (req: Request, res: Response) => {
+app.get(`/api/thumb/:topic/:id\.:ext?`, async (req: Request, res: Response) => {
   const dir = path.join(DATA_FOLDER, 'thumbs')
 
   if (!await fileExists(dir)) {
@@ -85,7 +87,8 @@ app.get(`/api/thumb/:id\.:ext?`, async (req: Request, res: Response) => {
   const filename = path.join(dir, `${req.params.id}.${THUMB_FORMAT}`)
 
   if (!await fileExists(filename)) {
-    const {topic, attachmentHash} = parseFileID(req.params.id)
+    const topic = req.params.topic
+    const attachmentHash = req.params.id
     const client = node.getTopic(topic)
     if (!client) return NotFoundError(res)
     const content = await client.retrieveAttachment(attachmentHash)

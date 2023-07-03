@@ -35,6 +35,8 @@ function Post({post, replies, highlight, quote, isPreview}: {post: IPost, replie
     const dateString = useMemo(()=> {
         return getPostDateString(post.time)
     }, [post.time])
+    
+    const { board } = useParams()
 
     const [imageWide, setImageWide] = useState(false)
     const {hash} = useLocation()
@@ -59,12 +61,12 @@ function Post({post, replies, highlight, quote, isPreview}: {post: IPost, replie
             overflow='hidden'
             variant='outline'>
                 {post.tim && !isVideo(post) &&
-                <a href={`${API_URL}/file/${post.tim}${post.ext}`} target='_blank' onClick={imageClick}>
+                <a href={`${API_URL}/file/${board}/${post.tim}${post.ext}`} target='_blank' onClick={imageClick}>
                     <Image
                         objectFit='contain'
                         // boxSize={imageWide ? post.h : undefined}
                         // maxW={imageWide ? '512px' : '100%'}
-                        src={imageWide ? `${API_URL}/file/${post.tim}${post.ext}` : `${API_URL}/thumb/${post.tim}.jpg`}
+                        src={imageWide ? `${API_URL}/file/${board}/${post.tim}${post.ext}` : `${API_URL}/thumb/${board}/${post.tim}.jpg`}
                         alt={`${post.filename}${post.ext}`}
                     />
                 </a>}
@@ -74,7 +76,7 @@ function Post({post, replies, highlight, quote, isPreview}: {post: IPost, replie
                         controls
                         loop={true}
                         maxW={'300px'}
-                        src={`${API_URL}/file/${post.tim}${post.ext}`}
+                        src={`${API_URL}/file/${board}/${post.tim}${post.ext}`}
                         title={`${post.filename}${post.ext}`}
                         objectFit='contain'
                         sx={{
@@ -99,7 +101,7 @@ function Post({post, replies, highlight, quote, isPreview}: {post: IPost, replie
                     <HStack spacing={7}>
                         {post.filename && 
                         <Tooltip label={`${post.filename}${post.ext}`}>
-                            <Text as='i'>File: <a href={`${API_URL}/file/${post.tim}${post.ext}`} target='_blank'>{`${truncateText(post.filename, 24)}${post.ext}`}</a></Text>
+                            <Text as='i'>File: <a href={`${API_URL}/file/${board}/${post.tim}${post.ext}`} target='_blank'>{`${truncateText(post.filename, 24)}${post.ext}`}</a></Text>
                         </Tooltip>}
                         {post.fsize  && <Text as='i'>{`(${formatBytes(post.fsize)}, ${post.w}x${post.h})`}</Text>}
                     </HStack>
