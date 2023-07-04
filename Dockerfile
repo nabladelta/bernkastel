@@ -1,29 +1,19 @@
 FROM node:alpine as base
 
-WORKDIR /node
+WORKDIR /b
 
-COPY node/package.json node/package-lock.json ./
+COPY ./ ./
 
 RUN rm -rf node_modules && npm install --frozen-lockfile
 
-WORKDIR /client
-
-COPY client/package.json client/package-lock.json ./
-RUN rm -rf node_modules && npm install --frozen-lockfile
-COPY client/tsconfig.json /client/
-COPY client/src /client/src
-COPY client/public /client/public
+WORKDIR /b/packages/client
 
 ENV REACT_APP_API_URL="/api"
 RUN npm run build
 
-WORKDIR /node
-COPY node/tsconfig.json /node/
-COPY node/src /node/src
+WORKDIR /b/packages/core
 RUN npm run build
 
-COPY rln-circuits/ /rln-circuits
+WORKDIR /b/packages/node
 
-RUN ["mv", "/client/", "/node/"]
-
-CMD ["node", "./dist/src/index.js"]
+CMD ["npm", "run", "start"]

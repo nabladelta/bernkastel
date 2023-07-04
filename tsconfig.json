@@ -10,7 +10,11 @@
       "skipLibCheck": true,
       "forceConsistentCasingInFileNames": true,
       "rootDir": "./src",
-      "outDir": "./build"
+      "outDir": "./dist",
+      "typeRoots": [
+        "./node_modules/@types",
+        "./packages/core"
+      ],
     },
     "files": [
     ],

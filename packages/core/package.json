@@ -5,7 +5,7 @@
   "main": "src/index.ts",
   "exports": {
     "import": "./src/index.ts",
-    "require": "./build/src/index.js"
+    "require": "./dist/src/index.js"
   },
   "scripts": {
     "build": "tsc --build"
