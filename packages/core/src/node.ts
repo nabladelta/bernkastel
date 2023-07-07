@@ -7,7 +7,7 @@ export class BBNode extends LDNodeBase<BulletinBoard> {
 
     protected newFeed(topicHash: string) {
         const board = new BulletinBoard(topicHash, this.corestore, this.rln!)
-        const logger = this.getSubLogger({name: `T[${topicHash.slice(0, 6)}]`})
+        const logger = this.getSubLogger({name: `T:${topicHash.slice(0, 6)}`})
         const eventNames = [
             'peerAdded',
             'peerRemoved',
@@ -25,7 +25,7 @@ export class BBNode extends LDNodeBase<BulletinBoard> {
         ] as const
 
         for (let name of eventNames) {
-            board.on(name, (...args: any[]) => logger.info(`${name} ${args.join(' | ')}`))
+            board.on(name, (...args: any[]) => logger.info(`[${name}] ${args.join(' | ')}`))
         }
         return board
     }
