@@ -2,7 +2,7 @@ import { Lambdadelta, Timeline }  from "@nabladelta/lambdadelta"
 import { NullifierSpec } from "@nabladelta/lambdadelta"
 import { deserializePost, serializePost } from "./utils"
 import { RLN, RLNGFullProof, VerificationResult, nullifierInput } from '@nabladelta/rln'
-import { FeedEventHeader } from "@nabladelta/lambdadelta/src/lambdadelta"
+import { FeedEventHeader, PeerData } from "@nabladelta/lambdadelta/src/lambdadelta"
 import crypto from 'crypto'
 
 const TYPE_THREAD = "THREAD"
@@ -14,10 +14,13 @@ export class BulletinBoard extends Lambdadelta {
     private threads: Map<string, Timeline>
     private lastModified: Timeline
 
+    private missingPayload: Set<string>
+
     constructor(topic: string, corestore: any, rln: RLN) {
         super(topic, corestore, rln)
         this.lastModified = new Timeline()
         this.threads = new Map()
+        this.missingPayload = new Set()
     }
     protected async validateContent(eventID: string, eventType: string, buf: Buffer): Promise<boolean> {
         const post = deserializePost(buf)
@@ -46,31 +49,59 @@ export class BulletinBoard extends Lambdadelta {
         this.addEventType(TYPE_THREAD, [singleThread, dailyThreads], 4096)
     }
 
-    protected async onTimelineAddEvent(eventID: string, _: number, __: number) {
+    protected async onTimelineRemove(eventID: string, time: number, consensusTime: number): Promise<void> {
+        await super.onTimelineRemove(eventID, time, consensusTime)
         const event = await this.getEventByID(eventID)
-        if (!event) throw new Error("Missing event")
+        if (!event) {
+            return
+        }
+        const post = deserializePost(event.payload)
+        let threadId = event.header.eventType == TYPE_POST ? post.resto! : eventID
+        this.removeEventFromThread(threadId, eventID)
+    }
+
+    protected async onTimelineAdd(eventID: string, time: number, consensusTime: number) {
+        await super.onTimelineAdd(eventID, time, consensusTime)
+        const event = await this.getEventByID(eventID)
+        if (!event) {
+            this.missingPayload.add(eventID)
+            return 
+        }
+        await this.onNewEvent(eventID, event)
+    }
+
+    protected async onEventSyncComplete(peer: PeerData, eventID: string): Promise<void> {
+        await super.onEventSyncComplete(peer, eventID)
+
+        const {header, payload} = await this.getEventByID(eventID) || {}
+        if (payload) await this.syncAttachment(peer, deserializePost(payload).tim)
+
+        if (this.missingPayload.has(eventID) && this.isEventInTimeline(eventID)) {
+            const event = await this.getEventByID(eventID)
+            if (!event) return
+
+            this.missingPayload.delete(eventID)
+            await this.onNewEvent(eventID, event)
+        }
+    }
+
+    protected async onNewEvent(eventID: string, event: {header: FeedEventHeader, payload: Buffer}) {
         switch (event.header.eventType) {
             case TYPE_THREAD:
-                this.recvThread(eventID, event.header, deserializePost(event.content))
+                this.recvThread(eventID, event.header, deserializePost(event.payload))
                 break
             case TYPE_POST:
-                this.recvPost(eventID, event.header, deserializePost(event.content))
+                this.recvPost(eventID, event.header, deserializePost(event.payload))
                 break
         }
     }
 
-    protected async onSyncEvent(peerID: string, eventID: string) {
-        const {header, content} = await this.getEventByID(eventID) || {}
-        if (content) await this.syncAttachment(peerID, deserializePost(content).tim)
-    }
-
-    private async syncAttachment(peerID: string, attachmentHash?: string) {
+    private async syncAttachment(peer: PeerData, attachmentHash?: string) {
         if (!attachmentHash) return false // No attachments
         const ownEntry = await this.drive.entry(`/attachments/${attachmentHash}`)
         if (ownEntry) {
             return true  // We already have it
         }
-        const peer = this.getPeer(peerID)
         const entry = await peer.drive.entry(`/attachments/${attachmentHash}`)
         if (!entry) {
             return false  // Peer does not have attachment
@@ -78,24 +109,24 @@ export class BulletinBoard extends Lambdadelta {
         if (entry.value.blob.byteLength > MAX_ATTACHMENT_SIZE!) {
             return false // Attachment too big
         }
-        const contentBuf: Buffer | null = await peer.drive.get(`/attachments/${attachmentHash}`)
-        if (!contentBuf) {
+        const payloadBuf: Buffer | null = await peer.drive.get(`/attachments/${attachmentHash}`)
+        if (!payloadBuf) {
             return false
         }
-        const hash = crypto.createHash('sha256').update(contentBuf).digest('hex')
+        const hash = crypto.createHash('sha256').update(payloadBuf).digest('hex')
         if (hash !== attachmentHash) {
             return false // Attachment wrong hash
         }
-        await this.drive.put(`/attachments/${attachmentHash}`, contentBuf)
+        await this.drive.put(`/attachments/${attachmentHash}`, payloadBuf)
         return true
     }
 
-    private recvThread(eventID: string, header: FeedEventHeader, content: IPost) {
+    private recvThread(eventID: string, header: FeedEventHeader, payload: IPost) {
         this.addEventToThread(eventID, eventID, header.claimed)
     }
 
-    private recvPost(eventID: string, header: FeedEventHeader, content: IPost) {
-        this.addEventToThread(content.resto!, eventID, header.claimed)
+    private recvPost(eventID: string, header: FeedEventHeader, payload: IPost) {
+        this.addEventToThread(payload.resto!, eventID, header.claimed)
     }
 
     private addEventToThread(threadID: string, eventID: string, time: number) {
@@ -103,6 +134,18 @@ export class BulletinBoard extends Lambdadelta {
         timeline.setTime(eventID, time)
         this.threads.set(threadID, timeline)
         this.updateThreadBump(threadID)
+    }
+
+    private removeEventFromThread(threadID: string, eventID: string) {
+        const timeline = this.threads.get(threadID)
+        if (!timeline) {
+            return
+        }
+        timeline.unsetTime(eventID)
+        // Whole thread is being deleted
+        if (threadID == eventID) {
+            this.removeThread(threadID)
+        }
     }
 
     private updateThreadBump(threadID: string) {
@@ -158,20 +201,20 @@ export class BulletinBoard extends Lambdadelta {
     }
 
     public async retrieveAttachment(attachmentHash: string) {
-        const contentBuf: Buffer | null = await this.drive.get(`/attachments/${attachmentHash}`)
-        if (!contentBuf) {
+        const payloadBuf: Buffer | null = await this.drive.get(`/attachments/${attachmentHash}`)
+        if (!payloadBuf) {
             return false
         }
-        return contentBuf
+        return payloadBuf
     }
 
     public async getPostByID(eventID: string) {
         const event = await this.getEventByID(eventID)
         if (!event) return undefined
-        const content = deserializePost(event.content)
-        content.id = eventID
-        content.no = eventID.slice(0, 16)
-        return content
+        const payload = deserializePost(event.payload)
+        payload.id = eventID
+        payload.no = eventID.slice(0, 16)
+        return payload
     }
 
     public async getThreadContent(threadID: string) {

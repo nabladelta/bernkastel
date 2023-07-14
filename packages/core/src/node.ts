@@ -15,7 +15,7 @@ export class BBNode extends LDNodeBase<BulletinBoard> {
             'syncEventStart',
             'syncFatalError',
             'syncEventResult',
-            'syncContentResult',
+            'syncPayloadResult',
             'syncDuplicateEvent',
             'syncEventReceivedTime',
             'timelineAddEvent',
