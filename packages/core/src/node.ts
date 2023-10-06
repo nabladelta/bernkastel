@@ -22,6 +22,7 @@ export class BBNode extends LDNodeBase<BulletinBoard> {
             'timelineRejectedEvent',
             'consensusTimeChanged',
             'syncCompleted',
+            'newEvent'
         ] as const
 
         for (let name of eventNames) {
