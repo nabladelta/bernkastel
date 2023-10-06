@@ -15,7 +15,6 @@ export class BBNode extends LDNodeBase<BulletinBoard> {
             'syncEventStart',
             'syncFatalError',
             'syncEventResult',
-            'syncPayloadResult',
             'syncDuplicateEvent',
             'syncEventReceivedTime',
             'timelineAddEvent',
@@ -23,7 +22,6 @@ export class BBNode extends LDNodeBase<BulletinBoard> {
             'timelineRejectedEvent',
             'consensusTimeChanged',
             'syncCompleted',
-            'peerUpdate'
         ] as const
 
         for (let name of eventNames) {
