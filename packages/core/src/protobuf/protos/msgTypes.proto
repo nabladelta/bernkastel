@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+message Post {
+    float time = 3; // UNIX timestamp the post was created
+    string com = 4; // Comment
+    string sub = 5; // OP Subject text
+    string name = 6; // Name user posted with. Defaults to Anonymous
+    string trip = 7; // The user's tripcode, in format: !tripcode or !!securetripcode
+    string resto = 8; // For replies: this is the ID of the thread being replied to. For OP: this value is zero
+    string filename = 11; // Filename as it appeared on the poster's device
+    string ext = 12; // Filetype
+    string tim = 13; // File ID
+    int32 w = 14; // Image width dimension
+    int32 h = 15; // Image height dimension
+    string sha256 = 16; // File hash
+    string md5 = 17; // File hash
+    float fsize = 18; // File size
+    string mime = 19; // File mime type
+}

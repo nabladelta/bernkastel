@@ -15,7 +15,8 @@
   "license": "ISC",
   "dependencies": {
     "@hyperswarm/testnet": "^3.1.4",
-    "@nabladelta/lambdadelta": "^0.1.11"
+    "@nabladelta/lambdadelta": "^0.1.11",
+    "@protobuf-ts/plugin": "^2.9.1"
   },
   "devDependencies": {
     "@types/node": "^20.3.2"

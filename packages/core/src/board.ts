@@ -17,10 +17,28 @@ export class BulletinBoard extends Lambdadelta {
 
     constructor(topic: string, corestore: any, rln: RLN) {
         super(topic, corestore, rln)
-
     }
+
     protected async validateContent(eventID: string, eventType: string, buf: Buffer): Promise<boolean> {
-        const post = deserializePost(buf)
+        try {
+            const post = deserializePost(buf)
+            if (eventType == TYPE_POST) {
+                if (!post.resto || post.resto.length == 0) {
+                    return false
+                }
+            }
+            const originalHash = crypto.createHash('sha256').update(buf).digest('hex')
+            const reSerialized = serializePost(post)
+            const reHash = crypto.createHash('sha256').update(reSerialized).digest('hex')
+            // Post MUST be the same after re-serialization
+            // Otherwise, it means that the post has extraneous data in it
+            if (originalHash !== reHash) {
+                return false
+            }
+
+        } catch (e) {
+            return false
+        }
         return true
     }
 
