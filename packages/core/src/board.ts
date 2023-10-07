@@ -11,16 +11,13 @@ const MAX_THREADS = 256
 const MAX_ATTACHMENT_SIZE = 5400000
 
 export class BulletinBoard extends Lambdadelta {
-    private threads: Map<string, Timeline>
-    private lastModified: Timeline
-
-    private missingPayload: Set<string>
+    private threads: Map<string, Timeline> = new Map()
+    private lastModified: Timeline = new Timeline()
+    private attachmentsToPosts: Map<string, Set<string>> = new Map()
 
     constructor(topic: string, corestore: any, rln: RLN) {
         super(topic, corestore, rln)
-        this.lastModified = new Timeline()
-        this.threads = new Map()
-        this.missingPayload = new Set()
+
     }
     protected async validateContent(eventID: string, eventType: string, buf: Buffer): Promise<boolean> {
         const post = deserializePost(buf)
@@ -49,6 +46,51 @@ export class BulletinBoard extends Lambdadelta {
         this.addEventType(TYPE_THREAD, [singleThread, dailyThreads], 4096)
     }
 
+    private isEventOnBoard(eventID: string) {
+        if (this.lastModified.getTime(eventID) !== undefined) {
+            return true
+        }
+        for (let timeline of this.threads.values()) {
+            if (timeline.getTime(eventID) !== undefined) {
+                return true
+            }
+        }
+        return false
+    }
+
+    protected async markEventsForDeletion() {
+        const eventsToDelete = new Set<string>()
+        for (const eventID of this.getAllEventIDs()) {
+            if (!this.isEventOnBoard(eventID)) {
+                eventsToDelete.add(eventID)
+                await this.onEventGarbageCollected(eventID)
+            }
+        }
+        return eventsToDelete
+    }
+
+    protected async deleteEventResources(eventID: string): Promise<void> {
+        const event = await this.getEventByID(eventID)
+        if (!event) {
+            return
+        }
+        const post = deserializePost(event.payload)
+        if (post.tim) {
+            await this.deleteAttachment(post.tim, eventID)
+        }
+        await super.deleteEventResources(eventID)
+    }
+
+    private async deleteAttachment(attachmentHash: string, eventID: string) {
+        const postsSet = this.attachmentsToPosts.get(attachmentHash) || new Set()
+        postsSet.delete(eventID)
+        if (postsSet.size == 0) {
+            this.attachmentsToPosts.delete(attachmentHash)
+            await this.drive.del(`/attachments/${attachmentHash}`)
+            await this.drive.clear(`/attachments/${attachmentHash}`)
+        }
+    }
+
     protected async onTimelineRemove(eventID: string, time: number, consensusTime: number): Promise<void> {
         await super.onTimelineRemove(eventID, time, consensusTime)
         const event = await this.getEventByID(eventID)
@@ -60,38 +102,28 @@ export class BulletinBoard extends Lambdadelta {
         this.removeEventFromThread(threadId, eventID)
     }
 
-    protected async onTimelineAdd(eventID: string, time: number, consensusTime: number) {
-        await super.onTimelineAdd(eventID, time, consensusTime)
-        const event = await this.getEventByID(eventID)
-        if (!event) {
-            this.missingPayload.add(eventID)
-            return 
-        }
-        await this.onNewEvent(eventID, event)
-    }
-
     protected async onEventSyncComplete(peer: PeerData, eventID: string): Promise<void> {
-        await super.onEventSyncComplete(peer, eventID)
-
         const {header, payload} = await this.getEventByID(eventID) || {}
         if (payload) await this.syncAttachment(peer, deserializePost(payload).tim)
-
-        if (this.missingPayload.has(eventID) && this.isEventInTimeline(eventID)) {
-            const event = await this.getEventByID(eventID)
-            if (!event) return
-
-            this.missingPayload.delete(eventID)
-            await this.onNewEvent(eventID, event)
-        }
+        await super.onEventSyncComplete(peer, eventID)
     }
 
-    protected async onNewEvent(eventID: string, event: {header: FeedEventHeader, payload: Buffer}) {
+    protected async onNewEvent(eventID: string, event: {header: FeedEventHeader, payload: Buffer}): Promise<void> {
+        super.onNewEvent(eventID, event)
+        const post = deserializePost(event.payload)
+        // Save association between attachment and post
+        if (post.tim) {
+            const attachmentHash = post.tim
+            const postsSet = this.attachmentsToPosts.get(attachmentHash) || new Set()
+            postsSet.add(eventID)
+            this.attachmentsToPosts.set(attachmentHash, postsSet)
+        }
         switch (event.header.eventType) {
             case TYPE_THREAD:
-                this.recvThread(eventID, event.header, deserializePost(event.payload))
+                this.recvThread(eventID, event.header, post)
                 break
             case TYPE_POST:
-                this.recvPost(eventID, event.header, deserializePost(event.payload))
+                this.recvPost(eventID, event.header, post)
                 break
         }
     }
