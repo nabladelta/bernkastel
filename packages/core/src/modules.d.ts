@@ -13,6 +13,54 @@ declare module '@mapeo/sqlite-indexer'
 declare module 'sodium-universal'
 declare module 'base32.js'
 
+declare module 'protomux-rpc' {
+  import { TypedEmitter } from 'tiny-typed-emitter'
+  import { Duplex } from 'streamx'
+
+  export interface ProtomuxRPCEvents {
+    'close': () => void
+    'open': (handshake: Buffer) => void
+    'destroy': () => void
+  }
+
+  export interface ResponseOpts {
+    // Optional encoding for both requests and responses, defaults to raw
+    valueEncoding?: encoding,
+    requestEncoding?: encoding, // Optional encoding for requests
+    responseEncoding?: encoding // Optional encoding for responses
+  }
+
+  export interface RequestOpts extends ResponseOpts {
+    timeout?: number // Optional request timeout in milliseconds
+  }
+  export interface ProtomuxRPCOpts {
+    // Optional binary ID to identify this RPC channel
+    id?: Buffer,
+    // Optional protocol name
+    protocol?: string,
+    // Optional default value encoding
+    valueEncoding?: encoding,
+    // Optional handshake
+    handshake?: Buffer,
+    // Optional encoding for the handshake
+    handshakeEncoding?: encoding
+  }
+
+  export default class ProtomuxRPC extends TypedEmitter<ProtomuxRPCEvents> {
+    constructor(stream: Duplex | any, options?: ProtomuxRPCOpts)
+    closed: boolean
+    mux: any
+    stream: Duplex | any
+
+    request(method: string, value: any, options?: RequestOpts): Promise<any>
+    respond(method: string, options: ResponseOpts, handler: (value: any) => any): void
+    unrespond(method: string): void
+    cork(): void
+    uncork(): void
+    end(): Promise<void>
+    destroy(): void
+  }
+}
 declare module 'hyperblobs' {
   import Hypercore from 'hypercore'
 
@@ -96,6 +144,12 @@ declare module 'hyperdrive' {
 
     close(): Promise<void>
 
+    clear(path: string, opts?: {diff?: boolean}): Promise<number | null>
+
+    clearAll(opts?: {diff?: boolean}): Promise<number | null>
+
+    purge(): Promise<void>
+
     get(path: string): Promise<Buffer | null>
 
     entry(path: string): Promise<PathEntry>
@@ -150,7 +204,6 @@ declare module 'hypercore' {
   import { NoiseSecretStream } from '@hyperswarm/secret-stream'
   import RandomAccessStorage from 'random-access-storage'
   import { Writable, Readable } from 'streamx'
-
   export interface KeyPair {
     publicKey: Buffer | Uint8Array
     secretKey: Buffer | Uint8Array
@@ -269,7 +322,9 @@ declare module 'hypercore' {
 
     createWriteStream(): Writable<Buffer>
 
-    clear(start: number, end?: number): Promise<void>
+    clear(start: number, end?: number, options?: { diff?: boolean }): Promise<void>
+
+    purge(): Promise<void>
 
     truncate(newLength: number, forkId?: number): Promise<void>
 
@@ -650,7 +705,7 @@ declare module 'hyperswarm' {
 
 declare module 'udx-native' {
   import { TypedEmitter } from 'tiny-typed-emitter'
-  import { Duplex, Duplex, Duplex } from 'streamx'
+  import { Duplex } from 'streamx'
 
   export interface Interface {
     name: string
