@@ -12,6 +12,5 @@
         "rootDir": "./",
         "outDir": "./dist",
         "composite": true,
-        "typeRoots": ["./node_modules/@types", "../../node_modules/@nabladelta/lambdadelta/dist/src/@types", ],
     }
 }
