@@ -1,7 +1,7 @@
 import { FeedEventHeader, LambdadeltaFeed, LambdadeltaFeedConstructorOptions, Timeline }  from "@nabladelta/lambdadelta"
-import { deserializePost, } from "./utils"
-import { TYPE_POST, TYPE_THREAD } from "./bernkastel"
-import { ContentManager } from "./content"
+import { deserializePost, } from "./utils.js"
+import { TYPE_POST, TYPE_THREAD } from "./bernkastel.js"
+import { ContentManager } from "./content.js"
 
 
 const MAX_THREADS = 256

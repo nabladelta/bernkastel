@@ -1,9 +1,9 @@
 import { Helia } from "helia";
-import { buffers, Buffers } from "./heliaBuffer";
+import { buffers, Buffers } from "./heliaBuffer.js";
 import { Crypter } from "@nabladelta/lambdadelta";
 import { CID } from "multiformats/cid";
-import { deserializePost, serializePost } from "./utils";
-import { TYPE_POST } from "./bernkastel";
+import { deserializePost, serializePost } from "./utils.js";
+import { TYPE_POST } from "./bernkastel.js";
 export class ContentManager {
     private ipfs: Helia
     private ipfsBuffers: Buffers

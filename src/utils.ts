@@ -1,4 +1,4 @@
-import { Post } from "./protobuf/msgTypes"
+import { Post } from "./protobuf/msgTypes.js"
 
 export function serializePost(post: IPost) {
     return Post.toBinary(Post.create(post))
