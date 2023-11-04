@@ -39,28 +39,28 @@ export class ContentManager {
         return cid.toString()
     }
     
-    protected async validateContent(eventID: string, eventType: string, buf: Buffer): Promise<boolean> {
-        try {
-            const post = deserializePost(buf)
-            if (eventType == TYPE_POST) {
-                if (!post.resto || post.resto.length == 0) {
-                    return false
-                }
-            }
-            // const originalHash = crypto.createHash('sha256').update(buf).digest('hex')
-            // const reSerialized = serializePost(post)
-            // const reHash = crypto.createHash('sha256').update(reSerialized).digest('hex')
-            // // Post MUST be the same after re-serialization
-            // // Otherwise, it means that the post has extraneous data in it
-            // if (originalHash !== reHash) {
-            //     return false
-            // }
+    // protected async validateContent(eventID: string, eventType: string, buf: Buffer): Promise<boolean> {
+    //     try {
+    //         const post = deserializePost(buf)
+    //         if (eventType == TYPE_POST) {
+    //             if (!post.resto || post.resto.length == 0) {
+    //                 return false
+    //             }
+    //         }
+    //         // const originalHash = crypto.createHash('sha256').update(buf).digest('hex')
+    //         // const reSerialized = serializePost(post)
+    //         // const reHash = crypto.createHash('sha256').update(reSerialized).digest('hex')
+    //         // // Post MUST be the same after re-serialization
+    //         // // Otherwise, it means that the post has extraneous data in it
+    //         // if (originalHash !== reHash) {
+    //         //     return false
+    //         // }
 
-        } catch (e) {
-            return false
-        }
-        return true
-    }
+    //     } catch (e) {
+    //         return false
+    //     }
+    //     return true
+    // }
 
     public async getAttachment(cidString: string): Promise<Uint8Array> {
         const cid = CID.parse(cidString)
