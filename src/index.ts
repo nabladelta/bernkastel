@@ -1,4 +1,3 @@
-import { BBNode } from "./node";
-import { BulletinBoard } from "./board";
-
-export { BBNode, BulletinBoard }
+import { BulletinBoard } from "./board.js";
+import { Bernkastel } from "./bernkastel.js";
+export { Bernkastel }

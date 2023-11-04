@@ -1,17 +1,16 @@
 {
     "compilerOptions": {
-        "target": "es2022",
-        "module": "commonjs",
-        "moduleResolution": "node",
-        "declaration": true,
-        "strict": true,
-        "incremental": true,
-        "esModuleInterop": true,
-        "skipLibCheck": true,
-        "forceConsistentCasingInFileNames": true,
-        "rootDir": "./",
-        "outDir": "./dist",
-        "composite": true,
-        "experimentalDecorators": true,
-    }
-}
+      "target": "ESNext",   // To ensure latest features
+      "module": "ESNext",  // For native ES Modules
+      "moduleResolution": "node", // Node.js module resolution
+      "esModuleInterop": true,  // Allow default imports from CommonJS
+      "outDir": "./dist",       // Output directory for compiled files
+      "rootDir": "./src",       // Source files directory
+      "resolveJsonModule": true,
+      "skipLibCheck": true,     // Skip type checking of all declaration files
+      "strict": true
+    },
+    "baseUrl": "./",
+    "include": ["src/**/*.ts"],
+    "exclude": ["node_modules"]
+  }
