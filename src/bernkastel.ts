@@ -1,4 +1,4 @@
-import { EventRelayer, LambdadeltaOptions, LambdadeltaSync, NullifierSpec, createLibp2p } from "@nabladelta/lambdadelta"
+import { EventRelayer, LambdadeltaFeed, LambdadeltaFeedConstructorOptions, LambdadeltaOptions, LambdadeltaSync, NullifierSpec, createLibp2p } from "@nabladelta/lambdadelta"
 import { Lambdadelta } from "@nabladelta/lambdadelta"
 import { BulletinBoard } from "./board.js"
 import { ContentManager } from "./content.js"
@@ -16,12 +16,21 @@ export interface BernkastelOptions extends LambdadeltaOptions {
     ipfs: Helia
 }
 
-export class Bernkastel extends Lambdadelta<BulletinBoard> {
-    private contentManager: ContentManager
+export interface BernkastelConstructorOptions extends LambdadeltaConstructorOptions<LambdadeltaFeed> {
+    ipfs: Helia
+    contentManager: ContentManager
+}
 
-    protected constructor(args: LambdadeltaConstructorOptions<BulletinBoard> & { ipfs: Helia }) {
+export class Bernkastel extends Lambdadelta<BulletinBoard> {
+    private get contentManager() {
+        return this.feed.contentManager
+    }
+
+    protected constructor(args: LambdadeltaConstructorOptions<BulletinBoard> & { 
+        ipfs: Helia,
+    }) {
         super(args)
-        this.contentManager = new ContentManager(args.ipfs, this.encryption)
+        this.feed.setContentManager(new ContentManager(args.ipfs, this.encryption))
     }
 
     /**
@@ -46,8 +55,12 @@ export class Bernkastel extends Lambdadelta<BulletinBoard> {
         libp2p = libp2p || await createLibp2p(store)
         const blockstore = new MemoryBlockstore()
         const ipfs = await createHelia({libp2p, datastore: store, blockstore, start: true})
-        const contentManager = new ContentManager(ipfs)
-        const lambdadelta = new Bernkastel({ ipfs, topic, groupID, rln, store, libp2p, feed: (args) => BulletinBoard.create({...args, contentManager }), sync: LambdadeltaSync.create, relayer: EventRelayer.create, logger, initialSyncPeriodMs: initialSyncPeriodMs || 0})
+        const lambdadelta = new Bernkastel({ ipfs, topic, groupID, rln, store, libp2p, 
+            feed: BulletinBoard.create,
+            sync: LambdadeltaSync.create,
+            relayer: EventRelayer.create,
+            logger,
+            initialSyncPeriodMs: initialSyncPeriodMs || 0})
         await lambdadelta.start()
         return lambdadelta
     }

@@ -1,5 +1,4 @@
 import { FeedEventHeader, LambdadeltaFeed, LambdadeltaFeedConstructorOptions, Timeline }  from "@nabladelta/lambdadelta"
-import { deserializePost, } from "./utils.js"
 import { TYPE_POST, TYPE_THREAD } from "./bernkastel.js"
 import { ContentManager } from "./content.js"
 
@@ -19,18 +18,21 @@ export class BulletinBoard extends LambdadeltaFeed {
     /**
      * Content manager for the board
      */
-    private contentManager: ContentManager
+    public contentManager!: ContentManager
     /**
      * Maps post IDs to the thread IDs
      */
     private postIdsToThreadIds: Map<string, string> = new Map()
 
-    constructor(args: LambdadeltaFeedConstructorOptions & {contentManager: ContentManager}) {
+    constructor(args: LambdadeltaFeedConstructorOptions) {
         super(args)
-        this.contentManager = args.contentManager
     }
 
-    public static create(args: LambdadeltaFeedConstructorOptions & {contentManager: ContentManager}) {
+    public setContentManager(contentManager: ContentManager) {
+        this.contentManager = contentManager
+    }
+
+    public static create(args: LambdadeltaFeedConstructorOptions) {
         const feed = new BulletinBoard({...args})
         return feed
     }
@@ -75,6 +77,7 @@ export class BulletinBoard extends LambdadeltaFeed {
     }
 
     private addEventToThread(threadID: string, eventID: string, time: number) {
+        this.log.info(`Adding event ${eventID} to thread ${threadID}`)
         const timeline = this.threads.get(threadID) || new Timeline()
         timeline.setTime(eventID, time)
         this.threads.set(threadID, timeline)
@@ -145,7 +148,7 @@ export class BulletinBoard extends LambdadeltaFeed {
     public async getPostByID(eventID: string) {
         const event = await this.getEventByID(eventID)
         if (!event) return undefined
-        const payload = deserializePost(Buffer.from(event.header.payloadHash))
+        const payload = await this.contentManager.getPost(event.header.payloadHash)
         payload.id = eventID
         payload.no = eventID.slice(0, 16)
         return payload

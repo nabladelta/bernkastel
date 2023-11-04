@@ -8,7 +8,7 @@ export class ContentManager {
     private ipfs: Helia
     private ipfsBuffers: Buffers
 
-    constructor(ipfs: Helia, encryption?: Crypter) {
+    constructor(ipfs: Helia, encryption: Crypter) {
         this.ipfs = ipfs;
         this.ipfsBuffers = buffers(ipfs, encryption);
     }
@@ -16,8 +16,16 @@ export class ContentManager {
     public async getPost(payloadCID: string): Promise<IPost> {
         const cid = CID.parse(payloadCID)
         const buf = await this.ipfsBuffers.get(cid)
-        this.ipfs.pins.add(cid)
+
+        await this.pin(cid)
         return deserializePost(buf)
+    }
+
+    public async pin(cid: CID) {
+        if (await this.ipfs.pins.isPinned(cid)) {
+            return
+        }
+        this.ipfs.pins.add(cid)
     }
 
     public async removePost(payloadCID: string): Promise<void> {
@@ -27,7 +35,7 @@ export class ContentManager {
 
     public async addPost(post: IPost): Promise<string> {
         const cid = await this.ipfsBuffers.add(serializePost(post))
-        this.ipfs.pins.add(cid)
+        await this.pin(cid)
         return cid.toString()
     }
     
@@ -62,7 +70,7 @@ export class ContentManager {
 
     public async saveAttachment(attachment: Uint8Array): Promise<string> {
         const cid = await this.ipfsBuffers.add(attachment)
-        this.ipfs.pins.add(cid)
+        await this.pin(cid)
         return cid.toString()
     }
 }
