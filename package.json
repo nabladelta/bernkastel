@@ -1,6 +1,6 @@
 {
   "name": "@nabladelta/bernkastel",
-  "version": "0.2.2",
+  "version": "0.3.2",
   "description": "P2P BBS based on @nabladelta/lambdadelta",
   "main": "src/index.ts",
   "type": "module",
