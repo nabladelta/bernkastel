@@ -53,4 +53,16 @@ export class ContentManager {
         }
         return true
     }
+
+    public async getAttachment(cidString: string): Promise<Uint8Array> {
+        const cid = CID.parse(cidString)
+        const buf = await this.ipfsBuffers.get(cid)
+        return buf
+    }
+
+    public async saveAttachment(attachment: Uint8Array): Promise<string> {
+        const cid = await this.ipfsBuffers.add(attachment)
+        this.ipfs.pins.add(cid)
+        return cid.toString()
+    }
 }

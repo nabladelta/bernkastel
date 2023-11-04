@@ -1,7 +1,6 @@
-import { EventRelayer, LambdadeltaFeed, LambdadeltaOptions, LambdadeltaSync, NullifierSpec, createLibp2p } from "@nabladelta/lambdadelta"
+import { EventRelayer, LambdadeltaOptions, LambdadeltaSync, NullifierSpec, createLibp2p } from "@nabladelta/lambdadelta"
 import { Lambdadelta } from "@nabladelta/lambdadelta"
 import { BulletinBoard } from "./board"
-import { serializePost } from "./utils"
 import { ContentManager } from "./content"
 import { Helia } from "helia"
 import { createHelia } from "helia"
@@ -10,6 +9,8 @@ export const TYPE_POST = "POST"
 import { MemoryDatastore } from "datastore-core"
 import { MemoryBlockstore } from "blockstore-core"
 import { LambdadeltaConstructorOptions } from "@nabladelta/lambdadelta"
+import { VerificationResult } from "@nabladelta/rln"
+import { HeaderVerificationError } from "@nabladelta/lambdadelta/src/verifyEventHeader"
 
 export interface BernkastelOptions extends LambdadeltaOptions {
     ipfs: Helia
@@ -46,21 +47,25 @@ export class Bernkastel extends Lambdadelta<BulletinBoard> {
         const blockstore = new MemoryBlockstore()
         const ipfs = await createHelia({libp2p, datastore: store, blockstore, start: true})
         const contentManager = new ContentManager(ipfs)
-        const lambdadelta = new Bernkastel({ ipfs, topic, groupID, rln, store, libp2p, feed: (args) => BulletinBoard.create({...args, contentManager }), sync: (...args) => LambdadeltaSync.create(...args), relayer: EventRelayer.create, logger, initialSyncPeriodMs: initialSyncPeriodMs || 0})
+        const lambdadelta = new Bernkastel({ ipfs, topic, groupID, rln, store, libp2p, feed: (args) => BulletinBoard.create({...args, contentManager }), sync: LambdadeltaSync.create, relayer: EventRelayer.create, logger, initialSyncPeriodMs: initialSyncPeriodMs || 0})
         await lambdadelta.start()
         return lambdadelta
     }
 
     private async newMessage(type: typeof TYPE_THREAD | typeof TYPE_POST, post: IPost, attachment?: Uint8Array) {
+        if (attachment) {
+            const attachmentCID = await this.contentManager.saveAttachment(attachment)
+            post.tim = attachmentCID
+        }
         const payloadCID = await this.contentManager.addPost(post)
         return await this.newEvent(type, payloadCID)
     }
 
-    public async newThread(post: IPost, attachment?: Uint8Array) {
+    public async newThread(post: IPost, attachment?: Uint8Array): Promise<{result: boolean | VerificationResult | HeaderVerificationError, eventID: string, exists: boolean}> {
         return await this.newMessage(TYPE_THREAD, post, attachment)
     }
 
-    public async newPost(post: IPost, attachment?: Uint8Array) {
+    public async newPost(post: IPost, attachment?: Uint8Array): Promise<{result: boolean | VerificationResult | HeaderVerificationError, eventID: string, exists: boolean}> {
         return await this.newMessage(TYPE_POST, post, attachment)
     }
 
@@ -71,6 +76,8 @@ export class Bernkastel extends Lambdadelta<BulletinBoard> {
     public getCatalog = this.feed.getCatalog.bind(this.feed)
 
     public getThreadLength = this.feed.getThreadLength.bind(this.feed)
+
+    public getAttachment = (cid: string) => this.contentManager.getAttachment(cid)
 
     protected registerTypes(): void {
         const singlePost: NullifierSpec = {
