@@ -2,10 +2,6 @@ import { FeedEventHeader, LambdadeltaFeed, LambdadeltaFeedConstructorOptions, Ti
 import { TYPE_POST, TYPE_THREAD } from "./bernkastel.js"
 import { ContentManager } from "./content.js"
 
-
-const MAX_THREADS = 256
-const MAX_ATTACHMENT_SIZE = 5400000
-
 export class BulletinBoard extends LambdadeltaFeed {
     /**
      * Maps thread IDs to the timeline of the thread
@@ -24,15 +20,20 @@ export class BulletinBoard extends LambdadeltaFeed {
      */
     private postIdsToThreadIds: Map<string, string> = new Map()
 
-    constructor(args: LambdadeltaFeedConstructorOptions) {
+    private MAX_THREADS = 256
+
+    constructor(args: LambdadeltaFeedConstructorOptions & {maxThreads?: number}) {
         super(args)
+        if (args.maxThreads) {
+            this.MAX_THREADS = args.maxThreads
+        }
     }
 
     public setContentManager(contentManager: ContentManager) {
         this.contentManager = contentManager
     }
 
-    public static create(args: LambdadeltaFeedConstructorOptions) {
+    public static create(args: LambdadeltaFeedConstructorOptions & {maxThreads?: number}) {
         const feed = new BulletinBoard({...args})
         return feed
     }
@@ -47,7 +48,7 @@ export class BulletinBoard extends LambdadeltaFeed {
     }
 
     protected async onEventHeaderSync(eventID: string, header: FeedEventHeader): Promise<void> {
-        await this.contentManager.getPost(header.payloadHash)
+        await this.contentManager.postReceived(eventID, header.payloadHash)
     }
 
     protected async onTimelineAdd(eventID: string, time: number): Promise<void> {
@@ -56,7 +57,10 @@ export class BulletinBoard extends LambdadeltaFeed {
             return
         }
         const post = await this.contentManager.getPost(event.header.payloadHash)
-        
+        if (!post) {
+            this.log.error(`Skipping ${eventID}`)
+            return
+        }
         switch (event.header.eventType) {
             case TYPE_THREAD:
                 this.addEventToThread(eventID, eventID, event.header.claimed)
@@ -68,12 +72,12 @@ export class BulletinBoard extends LambdadeltaFeed {
     }
 
     protected async onEventDeleted(eventID: string): Promise<void> {
+        this.removeEventFromThread(eventID)
         const event = await this.getEventByID(eventID)
         if (!event) {
             return
         }
-        await this.contentManager.removePost(event.header.payloadHash)
-        this.removeEventFromThread(eventID)
+        await this.contentManager.postDeleted(eventID)
     }
 
     private addEventToThread(threadID: string, eventID: string, time: number) {
@@ -112,28 +116,60 @@ export class BulletinBoard extends LambdadeltaFeed {
         const [time, _] = timeline.getMostRecent()
         if (!time) return
         this.lastModified.setTime(threadID, time)
+        this.removeOrphanedThreads()
         this.bumpOff()
+    }
+
+    /**
+     * Removes threads that have no OP post, if they are older than 10 minutes
+     */
+    private removeOrphanedThreads() {
+        for (let [threadID, timeline] of this.threads) {
+            if (!timeline.getTime(threadID)) {
+                const [timestamp, eventID] = timeline.getLeastRecent()
+                if (!eventID || !timestamp) {
+                    this.removeThread(threadID)
+                    continue
+                }
+                const TEN_MINUTES = 600000
+                if (Date.now() - timestamp > TEN_MINUTES) {
+                    this.removeThread(threadID)
+                }
+            }
+        }
     }
 
     /**
      * Bumps an expired thread off the board when there are too many
      */
     private bumpOff() {
-        while (this.lastModified.getSize() > MAX_THREADS) {
+        while (this.lastModified.getSize() > this.MAX_THREADS) {
             // Get lowest thread in bump order
             const [time, threadID] = this.lastModified.getLeastRecent()
             if (!time || !threadID) return
             this.removeThread(threadID)
         }
     }
-
+    /**
+     * Removes a thread from the board and deletes all its events
+     * @param threadID
+     */
     private removeThread(threadID: string) {
+        if (!this.threads.get(threadID)) return 0
+        let count = 0
+        for (const [_, eventID] of this.threads.get(threadID)!.getEvents()) {
+            count++
+            this.scheduleEventDeletion(eventID)
+            this.postIdsToThreadIds.delete(eventID)
+        }
         this.lastModified.unsetTime(threadID)
         this.threads.delete(threadID)
         this.scheduleEventDeletion(threadID)
+        this.log.info(`Removed thread ${threadID} with ${count} posts`)
+        return count
     }
 
-    private getThreadId(eventID: string): string | false {
+    public getThreadId(eventID: string): string | false {
         if (this.lastModified.getTime(eventID) !== undefined) {
             return eventID
         }
@@ -149,6 +185,7 @@ export class BulletinBoard extends LambdadeltaFeed {
         const event = await this.getEventByID(eventID)
         if (!event) return undefined
         const payload = await this.contentManager.getPost(event.header.payloadHash)
+        if (!payload) return undefined
         payload.id = eventID
         payload.no = eventID.slice(0, 16)
         return payload

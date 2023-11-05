@@ -4,21 +4,25 @@ import { BulletinBoard } from "./board.js"
 import { ContentManager } from "./content.js"
 import { Helia } from "helia"
 import { createHelia } from "helia"
-export const TYPE_THREAD = "THREAD"
-export const TYPE_POST = "POST"
-import { MemoryDatastore } from "datastore-core"
+
+import { MemoryDatastore, NamespaceDatastore } from "datastore-core"
+import { Blockstore } from "interface-blockstore"
 import { MemoryBlockstore } from "blockstore-core"
 import { LambdadeltaConstructorOptions } from "@nabladelta/lambdadelta"
 import { VerificationResult } from "@nabladelta/rln"
-import { HeaderVerificationError } from "@nabladelta/lambdadelta/src/verifyEventHeader"
+import type { HeaderVerificationError } from "@nabladelta/lambdadelta"
+import { Key } from 'interface-datastore'
+export const TYPE_THREAD = "THREAD"
+export const TYPE_POST = "POST"
 
 export interface BernkastelOptions extends LambdadeltaOptions {
     ipfs: Helia
+    maxThreads?: number
+    blockstore?: Blockstore
 }
 
-export interface BernkastelConstructorOptions extends LambdadeltaConstructorOptions<LambdadeltaFeed> {
+export interface BernkastelConstructorOptions extends LambdadeltaConstructorOptions<BulletinBoard> {
     ipfs: Helia
-    contentManager: ContentManager
 }
 
 export class Bernkastel extends Lambdadelta<BulletinBoard> {
@@ -26,11 +30,24 @@ export class Bernkastel extends Lambdadelta<BulletinBoard> {
         return this.feed.contentManager
     }
 
-    protected constructor(args: LambdadeltaConstructorOptions<BulletinBoard> & { 
-        ipfs: Helia,
-    }) {
+    public static get storePrefix() {
+        return {
+                ...super.storePrefix,
+                contentManager: `${super.storePrefix.base}/contentManager`
+        } as const
+    }
+
+    public get prefix() {
+        return {
+            ...super.prefix,
+            contentManager: `${Bernkastel.storePrefix.base}${this.topicHash}/contentManager`
+        }
+    }
+
+    protected constructor(args: BernkastelConstructorOptions) {
         super(args)
-        this.feed.setContentManager(new ContentManager(args.ipfs, this.encryption))
+        const store = new NamespaceDatastore(this.store, new Key(this.prefix.contentManager))
+        this.feed.setContentManager(new ContentManager({ipfs: args.ipfs, log: this.getSubLogger({'name': "IPFS"}), store, encryption: this.encryption}))
     }
 
     /**
@@ -45,18 +62,27 @@ export class Bernkastel extends Lambdadelta<BulletinBoard> {
             topic,
             groupID,
             rln,
-            libp2p,
             store,
             logger,
             initialSyncPeriodMs,
-        }: LambdadeltaOptions,
+            ipfs,
+            libp2p,
+            maxThreads,
+            blockstore
+        }: BernkastelOptions,
     ): Promise<Bernkastel> {
-        store = store || new MemoryDatastore()
-        libp2p = libp2p || await createLibp2p(store)
-        const blockstore = new MemoryBlockstore()
-        const ipfs = await createHelia({libp2p, datastore: store, blockstore, start: true})
-        const lambdadelta = new Bernkastel({ ipfs, topic, groupID, rln, store, libp2p, 
-            feed: BulletinBoard.create,
+        store = store ?? new MemoryDatastore()
+        blockstore = blockstore ?? new MemoryBlockstore()
+        libp2p = libp2p || ipfs.libp2p as any ||  await createLibp2p(store)
+        ipfs = await createHelia({blockstore, libp2p: libp2p as any})
+        const lambdadelta = new Bernkastel({
+            ipfs,
+            topic,
+            groupID,
+            rln,
+            store,
+            libp2p: libp2p as any,
+            feed: (args) => BulletinBoard.create({...args, maxThreads}),
             sync: LambdadeltaSync.create,
             relayer: EventRelayer.create,
             logger,

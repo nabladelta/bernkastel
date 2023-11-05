@@ -9,7 +9,8 @@
       "resolveJsonModule": true,
       "skipLibCheck": true,     // Skip type checking of all declaration files
       "strict": true,
-      "declaration": true,      // Generates corresponding .d.ts file
+      "declaration": true,      // Generates corresponding .d.ts file,
+      "preserveSymlinks": true, // Preserve symbolic links when resolving modules
     },
     "baseUrl": "./",
     "include": ["src/**/*.ts"],
