@@ -4,7 +4,6 @@ import { BulletinBoard } from "./board.js"
 import { ContentManager } from "./content.js"
 import { Helia } from "helia"
 import { createHelia } from "helia"
-
 import { MemoryDatastore, NamespaceDatastore } from "datastore-core"
 import { Blockstore } from "interface-blockstore"
 import { MemoryBlockstore } from "blockstore-core"

@@ -6,7 +6,6 @@ import { deserializePost, serializePost } from "./utils.js"
 import { Key } from 'interface-datastore'
 import type { Datastore } from 'interface-datastore'
 import { Logger } from "tslog"
-import { TYPE_POST, TYPE_THREAD } from "./bernkastel.js"
 
 export type ContentManagerConstructorOptions = {
     ipfs: Helia

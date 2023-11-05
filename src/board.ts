@@ -19,7 +19,9 @@ export class BulletinBoard extends LambdadeltaFeed {
      * Maps post IDs to the thread IDs
      */
     private postIdsToThreadIds: Map<string, string> = new Map()
-
+    /**
+     * Maximum number of threads to keep on the board
+     */
     private MAX_THREADS = 256
 
     constructor(args: LambdadeltaFeedConstructorOptions & {maxThreads?: number}) {
