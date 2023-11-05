@@ -1,5 +1,5 @@
 import { Helia } from "helia"
-import { buffers, Buffers } from "./heliaBuffer.js"
+import { encBuffers, EncryptedBuffers } from "./heliaBuffer.js"
 import { Crypter } from "@nabladelta/lambdadelta"
 import { CID } from "multiformats/cid"
 import { deserializePost, serializePost } from "./utils.js"
@@ -33,9 +33,12 @@ export enum AttachmentVerificationResult {
     INVALID = "INVALID"
 }
 
+/**
+ * Handles the storage and retrieval of posts and attachments through IPFS and tracks references to them in a datastore
+ */
 export class ContentManager {
     private ipfs: Helia
-    private ipfsBuffers: Buffers
+    private ipfsBuffers: EncryptedBuffers
     private maxPostSize: number = 8192 // 8 KB
     private maxAttachmentSize: number = 1024 * 1024 * 10 // 10 MB
     private store: Datastore
@@ -43,7 +46,7 @@ export class ContentManager {
 
     constructor({ipfs, encryption, store, log, maxAttachmentSize, maxPostSize}: ContentManagerConstructorOptions) {
         this.ipfs = ipfs
-        this.ipfsBuffers = buffers(ipfs, encryption)
+        this.ipfsBuffers = encBuffers(ipfs, encryption)
         this.maxAttachmentSize = maxAttachmentSize || this.maxAttachmentSize
         this.maxPostSize = maxPostSize || this.maxPostSize
         this.store = store

@@ -3,7 +3,7 @@
  *
  * `@helia/buffers` makes working with buffers {@link https://github.com/ipfs/helia Helia} simple & straightforward.
  *
- * See the {@link Buffers Buffers interface} for all available operations.
+ * See the {@link EncryptedBuffers Buffers interface} for all available operations.
  *
  * @example
  *
@@ -48,7 +48,7 @@ export interface GetOptions extends AbortOptions, ProgressOptions<GetBlockProgre
  * The Buffers interface provides a simple and intuitive way to add/get buffers
  * with your Helia node and is a great place to start learning about IPFS.
  */
-export interface Buffers {
+export interface EncryptedBuffers {
   /**
    * Add a string to your Helia node and get a CID that refers to the block the
    * string has been stored as.
@@ -88,7 +88,7 @@ export interface Buffers {
   get(cid: CID, options?: Partial<GetOptions>): Promise<Uint8Array>
 }
 
-class DefaultBuffers implements Buffers {
+class DefaultBuffers implements EncryptedBuffers {
   private readonly components: BuffersComponents
   private readonly encryption?: Crypter
 
@@ -116,8 +116,8 @@ class DefaultBuffers implements Buffers {
 }
 
 /**
- * Create a {@link Buffers} instance for use with {@link https://github.com/ipfs/helia Helia}
+ * Create a {@link EncryptedBuffers} instance for use with {@link https://github.com/ipfs/helia Helia}
  */
-export function buffers (helia: { blockstore: Blocks }, encryption?: Crypter): Buffers {
+export function encBuffers (helia: { blockstore: Blocks }, encryption?: Crypter): EncryptedBuffers {
   return new DefaultBuffers(helia, encryption)
 }
